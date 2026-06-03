@@ -260,22 +260,25 @@ class DependencyDetector implements DetectorInterface
             return null;
         }
 
-        $data = json_decode($response, true);
-        unset($response); // free the raw string (~5-15MB per popular package)
+        // Avoid json_decode entirely: for popular packages (e.g. laravel/framework) the raw
+        // JSON is ~12MB and decoding it to a PHP array peaks at ~55MB — crashing 128MB limits.
+        // Instead, extract only the two fields we need via regex on the raw string (~12MB), then
+        // immediately free it. Peak memory drops from ~55MB to ~12MB per package.
 
-        if (! is_array($data) || ! isset($data['package'])) {
-            return null;
-        }
+        // 1. Abandoned flag — a simple top-level boolean or forwarding string.
+        $abandoned = (bool) preg_match('/"abandoned"\s*:\s*(?:true|"[^"]+")/', $response);
 
-        $abandoned = ! empty($data['package']['abandoned']);
-
-        // Only extract version keys — each version's full metadata is not needed and can be huge.
-        $versionKeys = array_keys($data['package']['versions'] ?? []);
-        unset($data); // free the full decoded structure before iterating
+        // 2. Version keys — match JSON object keys that look like semver strings followed by `{`
+        //    (the opening of each version's metadata object).
+        //    Pattern covers: "10.0.0", "v10.0.0", "10.0.0.0" etc.
+        //    Values inside require/suggest are strings (not objects), so the `\{` guard prevents
+        //    false positives like "illuminate/console": "^10.0".
+        preg_match_all('/"(v?\d+\.\d+[\d.]*)"\s*:\s*\{/', $response, $matches);
+        unset($response); // free the raw string immediately (~5-15MB)
 
         $latest = null;
 
-        foreach ($versionKeys as $version) {
+        foreach ($matches[1] as $version) {
             // Skip dev / RC / beta versions
             if (preg_match('/[a-zA-Z]/', $version)) {
                 continue;
