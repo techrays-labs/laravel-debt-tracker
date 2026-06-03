@@ -62,6 +62,7 @@ class DependencyDetector implements DetectorInterface
         }
 
         $composerData = json_decode($composerJson, true);
+        unset($composerJson); // free raw string
 
         if (! is_array($composerData)) {
             return [];
@@ -71,6 +72,8 @@ class DependencyDetector implements DetectorInterface
         $lockData = $this->readLock($lockPath);
 
         $require = $composerData['require'] ?? [];
+        unset($composerData); // free full decoded structure — we only need $require
+
         $items = [];
         $cache = $this->loadCache();
         $now = time();
@@ -105,6 +108,8 @@ class DependencyDetector implements DetectorInterface
                 } else {
                     continue;
                 }
+
+                gc_collect_cycles(); // help PHP GC reclaim memory after each large API response
             }
 
             $entry = $cache[$cacheKey];
@@ -256,16 +261,21 @@ class DependencyDetector implements DetectorInterface
         }
 
         $data = json_decode($response, true);
+        unset($response); // free the raw string (~5-15MB per popular package)
 
         if (! is_array($data) || ! isset($data['package'])) {
             return null;
         }
 
-        $pkg = $data['package'];
-        $abandoned = ! empty($pkg['abandoned']);
+        $abandoned = ! empty($data['package']['abandoned']);
+
+        // Only extract version keys — each version's full metadata is not needed and can be huge.
+        $versionKeys = array_keys($data['package']['versions'] ?? []);
+        unset($data); // free the full decoded structure before iterating
+
         $latest = null;
 
-        foreach ($pkg['versions'] ?? [] as $version => $info) {
+        foreach ($versionKeys as $version) {
             // Skip dev / RC / beta versions
             if (preg_match('/[a-zA-Z]/', $version)) {
                 continue;
@@ -273,12 +283,8 @@ class DependencyDetector implements DetectorInterface
 
             $cleaned = ltrim($version, 'v');
 
-            if ($latest === null) {
+            if ($latest === null || version_compare($cleaned, $latest, '>')) {
                 $latest = $cleaned;
-            } else {
-                if (version_compare($cleaned, $latest, '>')) {
-                    $latest = $cleaned;
-                }
             }
         }
 
