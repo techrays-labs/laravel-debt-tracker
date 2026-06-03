@@ -5,11 +5,21 @@
     <img src="https://img.shields.io/badge/Built%20by-Techrays%20Labs-0057FF?style=for-the-badge" alt="Built by Techrays Labs">
   </a>
   &nbsp;
-  <img src="https://img.shields.io/packagist/v/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="Packagist Version">
+  <a href="https://packagist.org/packages/techrays-labs/laravel-debt-tracker">
+    <img src="https://img.shields.io/packagist/v/techrays-labs/laravel-debt-tracker?style=for-the-badge&label=stable" alt="Latest Stable Version">
+  </a>
   &nbsp;
-  <img src="https://img.shields.io/packagist/php-v/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="PHP Version">
+  <a href="https://packagist.org/packages/techrays-labs/laravel-debt-tracker">
+    <img src="https://img.shields.io/packagist/dt/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="Total Downloads">
+  </a>
   &nbsp;
-  <img src="https://img.shields.io/github/license/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Version">
+  &nbsp;
+  <img src="https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Version">
+  &nbsp;
+  <a href="https://github.com/techrays-labs/laravel-debt-tracker/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="License">
+  </a>
 </p>
 
 <p align="center">
