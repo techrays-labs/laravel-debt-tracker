@@ -1,0 +1,53 @@
+{
+  "name": "techrays-labs/laravel-debt-tracker",
+  "description": "Scan, score, and report technical debt in your Laravel application.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Techrays Labs",
+      "email": "hello@techrayslabs.com",
+      "homepage": "https://techrayslabs.com"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+    "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+    "nikic/php-parser": "^5.0",
+    "symfony/console": "^6.0|^7.0",
+    "symfony/finder": "^6.0|^7.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+    "pestphp/pest": "^2.0|^3.0",
+    "mockery/mockery": "^1.6",
+    "larastan/larastan": "^3.0",
+    "phpstan/phpstan": "^2.0",
+    "laravel/pint": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "TechRaysLabs\\DebtTracker\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "TechRaysLabs\\DebtTracker\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "TechRaysLabs\\DebtTracker\\DebtTrackerServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}

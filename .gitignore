@@ -1,0 +1,5 @@
+/vendor/
+/composer.lock
+/.phpunit.result.cache
+/storage/app/debt-tracker-cache.json
+DEBT_REPORT.md

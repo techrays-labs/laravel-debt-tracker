@@ -1,0 +1,8 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "simplified_null_return": true,
+        "blank_line_before_statement": true,
+        "new_with_braces": false
+    }
+}

@@ -1,0 +1,159 @@
+<?php
+
+declare(strict_types=1);
+
+namespace TechRaysLabs\DebtTracker\Reports;
+
+use Symfony\Component\Console\Output\OutputInterface;
+use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
+use TechRaysLabs\DebtTracker\ValueObjects\ScanResult;
+
+/**
+ * Renders a formatted scan report to the terminal.
+ */
+class TerminalReporter
+{
+    private GradeResolver $gradeResolver;
+
+    public function __construct(private readonly OutputInterface $output)
+    {
+        $this->gradeResolver = new GradeResolver;
+    }
+
+    /**
+     * Renders the full scan report to the output.
+     */
+    public function render(ScanResult $result): void
+    {
+        $this->renderHeader();
+        $this->renderSummary($result);
+        $this->renderCategoryTable($result->byCategory);
+        $this->renderFilesTable($result->topFiles());
+        $this->renderClassesTable($result->topClasses());
+        $this->output->writeln('');
+        $this->output->writeln('  <comment>Run with --export=markdown to save the full report.</comment>');
+        $this->output->writeln('');
+    }
+
+    private function renderHeader(): void
+    {
+        $this->output->writeln('');
+        $this->output->writeln('  <fg=cyan>╔══════════════════════════════════════════════════════════╗</>');
+        $this->output->writeln('  <fg=cyan>║        Laravel Debt Tracker · by Techrays Labs           ║</>');
+        $this->output->writeln('  <fg=cyan>║  https://github.com/techrays-labs/laravel-debt-tracker   ║</>');
+        $this->output->writeln('  <fg=cyan>╚══════════════════════════════════════════════════════════╝</>');
+        $this->output->writeln('');
+    }
+
+    private function renderSummary(ScanResult $result): void
+    {
+        $color = $this->gradeColor($result->grade);
+        $hours = number_format($result->estimatedHours, 1);
+        $files = count($result->fileResults);
+        $items = $result->totalItems();
+
+        $this->output->writeln(
+            "  Project Grade: <fg={$color};options=bold>{$result->grade}</>"
+            ."    Total Score: <options=bold>{$result->totalScore}</>"
+            ."    Est. Hours: <options=bold>{$hours}h</>"
+            ."    Files: <options=bold>{$files}</>"
+            ."    Items: <options=bold>{$items}</>"
+        );
+        $this->output->writeln('');
+    }
+
+    /** @param array<string, int> $byCategory */
+    private function renderCategoryTable(array $byCategory): void
+    {
+        if (empty($byCategory)) {
+            return;
+        }
+
+        $this->output->writeln('  <options=bold>Debt by Category:</>');
+        $this->output->writeln('  ┌─────────────────────────┬───────┬──────────┐');
+        $this->output->writeln('  │ Category                │ Items │ Score    │');
+        $this->output->writeln('  ├─────────────────────────┼───────┼──────────┤');
+
+        $labels = [
+            'todo' => 'TODOs / FIXMEs',
+            'complexity' => 'Complexity',
+            'coverage' => 'Missing Test Coverage',
+            'dependency' => 'Outdated Dependencies',
+        ];
+
+        foreach ($byCategory as $type => $score) {
+            $label = $labels[$type] ?? ucfirst($type);
+            $this->output->writeln(sprintf(
+                '  │ %-23s │  ---  │  %-6d  │',
+                $label,
+                $score
+            ));
+        }
+
+        $this->output->writeln('  └─────────────────────────┴───────┴──────────┘');
+        $this->output->writeln('');
+    }
+
+    /** @param \TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult[] $files */
+    private function renderFilesTable(array $files): void
+    {
+        if (empty($files)) {
+            return;
+        }
+
+        $this->output->writeln('  <options=bold>Top 10 Worst Files:</>');
+        $this->output->writeln('  ┌──────────────────────────────────────────┬───────┬───────┐');
+        $this->output->writeln('  │ File                                     │ Items │ Score │');
+        $this->output->writeln('  ├──────────────────────────────────────────┼───────┼───────┤');
+
+        foreach ($files as $file) {
+            $path = strlen($file->relativePath) > 40
+                ? '...'.substr($file->relativePath, -37)
+                : $file->relativePath;
+
+            $this->output->writeln(sprintf(
+                '  │ %-40s │  %-4d │  %-4d │',
+                $path,
+                $file->itemCount,
+                $file->totalScore
+            ));
+        }
+
+        $this->output->writeln('  └──────────────────────────────────────────┴───────┴───────┘');
+        $this->output->writeln('');
+    }
+
+    /** @param \TechRaysLabs\DebtTracker\ValueObjects\ClassDebtResult[] $classes */
+    private function renderClassesTable(array $classes): void
+    {
+        if (empty($classes)) {
+            return;
+        }
+
+        $this->output->writeln('  <options=bold>Top 10 Worst Classes:</>');
+        $this->output->writeln('  ┌──────────────────────────────────────────┬───────┬───────┐');
+        $this->output->writeln('  │ Class                                    │ Items │ Score │');
+        $this->output->writeln('  ├──────────────────────────────────────────┼───────┼───────┤');
+
+        foreach ($classes as $class) {
+            $fqn = strlen($class->fullyQualifiedName) > 40
+                ? '...'.substr($class->fullyQualifiedName, -37)
+                : $class->fullyQualifiedName;
+
+            $this->output->writeln(sprintf(
+                '  │ %-40s │  %-4d │  %-4d │',
+                $fqn,
+                $class->itemCount,
+                $class->totalScore
+            ));
+        }
+
+        $this->output->writeln('  └──────────────────────────────────────────┴───────┴───────┘');
+        $this->output->writeln('');
+    }
+
+    private function gradeColor(string $grade): string
+    {
+        return $this->gradeResolver->color($grade);
+    }
+}
