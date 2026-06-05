@@ -5,10 +5,35 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
     strategy:
+      fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
         laravel: ['10.*', '11.*', '12.*', '13.*']
+        include:
+          - laravel: '10.*'
+            testbench: '8.*'
+          - laravel: '11.*'
+            testbench: '9.*'
+          - laravel: '12.*'
+            testbench: '10.*'
+          - laravel: '13.*'
+            testbench: '11.*'
+        exclude:
+          # Laravel 13 (Symfony 8) requires PHP >= 8.3
+          - laravel: '13.*'
+            php: '8.2'
+          # Laravel 10 is not supported on PHP 8.4 / 8.5
+          - laravel: '10.*'
+            php: '8.4'
+          - laravel: '10.*'
+            php: '8.5'
+          # Laravel 11 is not supported on PHP 8.5
+          - laravel: '11.*'
+            php: '8.5'
 
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +44,11 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: |
+          composer require --dev --no-update \
+            "laravel/framework:${{ matrix.laravel }}" \
+            "orchestra/testbench:${{ matrix.testbench }}"
+          composer update --no-interaction --prefer-dist --with-all-dependencies
 
       - name: Run tests
         run: ./vendor/bin/pest
