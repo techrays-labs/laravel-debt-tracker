@@ -1,4 +1,8 @@
-# Laravel Debt Tracker
+<p align="center">
+  <img src="art/logo.png" alt="Laravel Debt Tracker" width="160">
+</p>
+
+<h1 align="center">Laravel Debt Tracker</h1>
 
 <p align="center">
   <a href="https://techrayslabs.com">
