@@ -90,14 +90,15 @@ php artisan debt:scan
   Project Grade: C    Total Score: 412    Est. Hours: 103h
 
   Debt by Category:
-  ┌─────────────────────────┬───────┬───────┐
-  │ Category                │ Items │ Score │
-  ├─────────────────────────┼───────┼───────┤
-  │ TODOs / FIXMEs          │  24   │  112  │
-  │ Complexity              │  18   │  180  │
-  │ Missing Test Coverage   │  31   │   88  │
-  │ Outdated Dependencies   │   6   │   32  │
-  └─────────────────────────┴───────┴───────┘
+  ┌─────────────────────────┬───────┬──────────┐
+  │ Category                │ Items │ Score    │
+  ├─────────────────────────┼───────┼──────────┤
+  │ TODOs / FIXMEs          │  ---  │  112     │
+  │ Complexity              │  ---  │  180     │
+  │ Missing Test Coverage   │  ---  │   88     │
+  │ Outdated Dependencies   │  ---  │   32     │
+  │ N+1 Query Patterns      │  ---  │   24     │
+  └─────────────────────────┴───────┴──────────┘
 
   Top 10 Worst Files:
   ┌────────────────────────────────────────┬───────┬───────┐
