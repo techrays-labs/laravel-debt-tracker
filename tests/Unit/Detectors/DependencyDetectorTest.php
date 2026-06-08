@@ -138,6 +138,28 @@ it('flags package with major version behind (mocked HTTP)', function () {
     expect(count($majorItems))->toBeGreaterThanOrEqual(1);
 });
 
+it('does not flag package when installed version is newer than packagist latest', function () {
+    [$composerJson, $dir] = makeTempComposer(
+        ['laravel/framework' => '^13.0'],
+        [['name' => 'laravel/framework', 'version' => '13.14.0']]
+    );
+
+    $detector = new class(projectRoot: $dir) extends DependencyDetector
+    {
+        protected function fetchPackagistData(string $package): ?array
+        {
+            // Simulate Packagist returning an older version as "latest"
+            // (can happen with stale cache or version parsing edge cases)
+            return ['abandoned' => false, 'latest' => '10.50.2'];
+        }
+    };
+
+    $items = $detector->detect($composerJson);
+    cleanupTempDir($dir);
+
+    expect($items)->toBeEmpty();
+});
+
 it('uses cached results on second call', function () {
     [$composerJson, $dir] = makeTempComposer(
         ['vendor/cached-package' => '^1.0'],

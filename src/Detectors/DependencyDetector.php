@@ -139,6 +139,10 @@ class DependencyDetector implements DetectorInterface
                 continue;
             }
 
+            if (version_compare($installed, $latest, '>=')) {
+                continue;
+            }
+
             $installedParts = $this->parseVersion($installed);
             $latestParts = $this->parseVersion($latest);
 
