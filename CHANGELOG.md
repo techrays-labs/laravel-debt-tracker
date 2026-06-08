@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0] - 2026-06-08
+
+### Added
+- N+1 query detector: flags Eloquent lazy-load patterns inside `foreach` loops and collection iterators (`->each()`, `->map()`, `->filter()`)
+- JSON export: `php artisan debt:scan --export=json` writes `DEBT_REPORT.json`
+- `--export=markdown,json` runs both exports in a single scan
+- `n1_queries` detector toggle and `n1_ignore_properties` config keys
+- `json_path` export config key
+
 ## [1.0.0] - 2025-06-03
 
 ### Added

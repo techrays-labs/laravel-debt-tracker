@@ -31,7 +31,7 @@ class TerminalReporter
         $this->renderFilesTable($result->topFiles());
         $this->renderClassesTable($result->topClasses());
         $this->output->writeln('');
-        $this->output->writeln('  <comment>Run with --export=markdown to save the full report.</comment>');
+        $this->output->writeln('  <comment>Run with --export=markdown or --export=json to save the full report.</comment>');
         $this->output->writeln('');
     }
 
@@ -65,23 +65,24 @@ class TerminalReporter
     /** @param array<string, int> $byCategory */
     private function renderCategoryTable(array $byCategory): void
     {
-        if (empty($byCategory)) {
-            return;
-        }
+        $labels = [
+            'todo' => 'TODOs / FIXMEs',
+            'complexity' => 'Complexity',
+            'coverage' => 'Missing Test Coverage',
+            'dependency' => 'Outdated Dependencies',
+            'n1_queries' => 'N+1 Queries',
+        ];
+
+        // Merge known categories (with 0 defaults) over actual results so all
+        // detectors are always visible, even when they find nothing.
+        $rows = array_merge(array_fill_keys(array_keys($labels), 0), $byCategory);
 
         $this->output->writeln('  <options=bold>Debt by Category:</>');
         $this->output->writeln('  ┌─────────────────────────┬───────┬──────────┐');
         $this->output->writeln('  │ Category                │ Items │ Score    │');
         $this->output->writeln('  ├─────────────────────────┼───────┼──────────┤');
 
-        $labels = [
-            'todo' => 'TODOs / FIXMEs',
-            'complexity' => 'Complexity',
-            'coverage' => 'Missing Test Coverage',
-            'dependency' => 'Outdated Dependencies',
-        ];
-
-        foreach ($byCategory as $type => $score) {
+        foreach ($rows as $type => $score) {
             $label = $labels[$type] ?? ucfirst($type);
             $this->output->writeln(sprintf(
                 '  │ %-23s │  ---  │  %-6d  │',

@@ -107,6 +107,7 @@ class MarkdownReporter
             'complexity' => 'Complexity',
             'coverage' => 'Missing Test Coverage',
             'dependency' => 'Outdated Dependencies',
+            'n1_queries' => 'N+1 Query Patterns',
         ];
 
         foreach ($result->byCategory as $type => $score) {

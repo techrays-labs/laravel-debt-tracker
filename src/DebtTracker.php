@@ -12,6 +12,7 @@ use TechRaysLabs\DebtTracker\Detectors\ComplexityDetector;
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
 use TechRaysLabs\DebtTracker\Detectors\CoverageDetector;
 use TechRaysLabs\DebtTracker\Detectors\DependencyDetector;
+use TechRaysLabs\DebtTracker\Detectors\N1QueryDetector;
 use TechRaysLabs\DebtTracker\Detectors\TodoDetector;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
@@ -167,6 +168,11 @@ class DebtTracker
         $all[] = new DependencyDetector(
             enabled: $isEnabled('dependencies'),
             projectRoot: $projectRoot,
+        );
+
+        $all[] = new N1QueryDetector(
+            enabled: $isEnabled('n1_queries'),
+            ignoreProperties: $this->config['n1_ignore_properties'] ?? ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
         );
 
         return $all;

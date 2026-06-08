@@ -9,6 +9,7 @@ use TechRaysLabs\DebtTracker\Commands\ScanCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowClassCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowFileCommand;
 use TechRaysLabs\DebtTracker\Commands\SummaryCommand;
+use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
 
 /**
@@ -28,6 +29,7 @@ class DebtTrackerServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(MarkdownReporter::class, fn () => new MarkdownReporter);
+        $this->app->singleton(JsonReporter::class, fn () => new JsonReporter);
     }
 
     public function boot(): void

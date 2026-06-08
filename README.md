@@ -1,4 +1,8 @@
-# Laravel Debt Tracker
+<p align="center">
+  <img src="art/logo.png" alt="Laravel Debt Tracker" width="160">
+</p>
+
+<h1 align="center">Laravel Debt Tracker</h1>
 
 <p align="center">
   <a href="https://techrayslabs.com">
@@ -30,7 +34,7 @@
 
 > **"We should fix this eventually"** — every engineering team, forever.
 >
-> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across five categories, assigns a score, estimates developer hours to resolve, and produces a Markdown report you can actually show your product manager.
+> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across six categories, assigns a score, estimates developer hours to resolve, and produces a Markdown or JSON report you can actually show your product manager.
 
 ---
 
@@ -38,11 +42,12 @@
 
 - **TODO / FIXME detection** — finds every deferred problem in your comments
 - **Complexity analysis** — cyclomatic complexity, long methods, God classes, deep nesting
+- **N+1 query detection** — flags Eloquent lazy-load patterns inside loops and collection iterators
 - **Test coverage heuristics** — no Xdebug required; detects untested classes and methods
 - **Dependency audit** — flags outdated or abandoned Composer packages
 - **Git blame enrichment** — older debt scores higher; age is the multiplier
 - **Debt grading** — A through F, with estimated dev hours to resolve
-- **Markdown export** — shareable reports with a shield badge for your README
+- **Markdown & JSON export** — shareable reports with a shield badge for your README
 
 ---
 
@@ -89,14 +94,15 @@ php artisan debt:scan
   Project Grade: C    Total Score: 412    Est. Hours: 103h
 
   Debt by Category:
-  ┌─────────────────────────┬───────┬───────┐
-  │ Category                │ Items │ Score │
-  ├─────────────────────────┼───────┼───────┤
-  │ TODOs / FIXMEs          │  24   │  112  │
-  │ Complexity              │  18   │  180  │
-  │ Missing Test Coverage   │  31   │   88  │
-  │ Outdated Dependencies   │   6   │   32  │
-  └─────────────────────────┴───────┴───────┘
+  ┌─────────────────────────┬───────┬──────────┐
+  │ Category                │ Items │ Score    │
+  ├─────────────────────────┼───────┼──────────┤
+  │ TODOs / FIXMEs          │  ---  │  112     │
+  │ Complexity              │  ---  │  180     │
+  │ Missing Test Coverage   │  ---  │   88     │
+  │ Outdated Dependencies   │  ---  │   32     │
+  │ N+1 Query Patterns      │  ---  │   24     │
+  └─────────────────────────┴───────┴──────────┘
 
   Top 10 Worst Files:
   ┌────────────────────────────────────────┬───────┬───────┐
@@ -116,6 +122,20 @@ php artisan debt:scan --export=markdown
 
 Writes `DEBT_REPORT.md` to your project root — ready to commit or share.
 
+### Export to JSON
+
+```bash
+php artisan debt:scan --export=json
+```
+
+Writes `DEBT_REPORT.json` — machine-readable output for dashboards, scripts, or CI integrations.
+
+### Export both at once
+
+```bash
+php artisan debt:scan --export=markdown,json
+```
+
 ### CI-friendly summary
 
 ```bash
@@ -133,7 +153,7 @@ php artisan debt:scan --path=app/Services
 ### Run specific detectors only
 
 ```bash
-php artisan debt:scan --only=todos,complexity
+php artisan debt:scan --only=todos,complexity,n1_queries
 ```
 
 ### Inspect a single file or class
@@ -173,6 +193,14 @@ return [
         'coverage'     => true,
         'dependencies' => true,
         'git_age'      => true,
+        'n1_queries'   => true,
+    ],
+
+    'n1_ignore_properties' => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
+
+    'export' => [
+        'path'      => base_path('DEBT_REPORT.md'),
+        'json_path' => base_path('DEBT_REPORT.json'),
     ],
 ];
 ```
@@ -196,6 +224,8 @@ Item Score = Base Weight × Age Multiplier
 | Untested class | 8 |
 | Outdated major dep | 10 |
 | Abandoned package | 20 |
+| N+1 property fetch | 6 |
+| N+1 chained query | 10 |
 
 | Debt Age | Multiplier |
 |---|---|
@@ -214,12 +244,34 @@ Item Score = Base Weight × Age Multiplier
 
 ---
 
-## Markdown Report
+## Reports
+
+### Markdown
 
 The exported `DEBT_REPORT.md` includes a shields.io badge you can embed in your README:
 
 ```markdown
 ![Debt Grade](https://img.shields.io/badge/Debt%20Grade-C-yellow)
+```
+
+### JSON
+
+`DEBT_REPORT.json` uses a stable schema suitable for CI dashboards or custom tooling:
+
+```json
+{
+  "generated_at": "2026-06-08T19:49:00+00:00",
+  "grade": "B",
+  "total_score": 141,
+  "estimated_hours": 35.3,
+  "file_count": 18,
+  "item_count": 21,
+  "by_category": [...],
+  "top_files": [...],
+  "top_classes": [...],
+  "items": [...],
+  "meta": { "package": "techrays-labs/laravel-debt-tracker", "url": "..." }
+}
 ```
 
 ---

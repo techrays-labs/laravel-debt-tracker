@@ -22,6 +22,7 @@ return [
     ],
     'export' => [
         'path' => base_path('DEBT_REPORT.md'),
+        'json_path' => base_path('DEBT_REPORT.json'),
     ],
     'detectors' => [
         'todos' => true,
@@ -29,5 +30,7 @@ return [
         'coverage' => true,
         'dependencies' => true,
         'git_age' => true,
+        'n1_queries' => true,
     ],
+    'n1_ignore_properties' => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
 ];
