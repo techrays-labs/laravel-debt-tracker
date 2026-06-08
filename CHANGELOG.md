@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2026-06-08
+
+### Fixed
+- Dependency detector no longer flags packages as outdated when the installed version is newer than what Packagist reports as latest (e.g. `laravel/framework 13.14.0` was incorrectly flagged as behind `10.50.2`)
+
 ## [1.1.0] - 2026-06-08
 
 ### Added
