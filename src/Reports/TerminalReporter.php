@@ -31,7 +31,7 @@ class TerminalReporter
         $this->renderFilesTable($result->topFiles());
         $this->renderClassesTable($result->topClasses());
         $this->output->writeln('');
-        $this->output->writeln('  <comment>Run with --export=markdown to save the full report.</comment>');
+        $this->output->writeln('  <comment>Run with --export=markdown or --export=json to save the full report.</comment>');
         $this->output->writeln('');
     }
 
