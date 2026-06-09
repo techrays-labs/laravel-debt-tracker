@@ -118,3 +118,44 @@ it('grade matches the scan result grade', function () {
     expect($data['grade'])->toBe('A');
     expect($data['total_score'])->toBe(50);
 });
+
+it('includes authors key in JSON output', function () {
+    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0,
+        byCategory: [],
+        generatedAt: new \DateTimeImmutable,
+        projectPath: '/tmp',
+        byAuthor: ['John Doe' => 142],
+    );
+
+    $reporter = new \TechRaysLabs\DebtTracker\Reports\JsonReporter;
+    $decoded = json_decode($reporter->generate($result), true);
+
+    expect($decoded)->toHaveKey('authors');
+    expect($decoded['authors'])->toBeArray();
+});
+
+it('each authors entry has author and debt_score keys', function () {
+    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0,
+        byCategory: [],
+        generatedAt: new \DateTimeImmutable,
+        projectPath: '/tmp',
+        byAuthor: ['John Doe' => 142, 'Jane Smith' => 87],
+    );
+
+    $reporter = new \TechRaysLabs\DebtTracker\Reports\JsonReporter;
+    $decoded = json_decode($reporter->generate($result), true);
+
+    expect($decoded['authors'][0])->toHaveKeys(['author', 'debt_score']);
+    expect($decoded['authors'][0]['author'])->toBe('John Doe');
+    expect($decoded['authors'][0]['debt_score'])->toBe(142);
+});

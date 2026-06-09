@@ -36,6 +36,12 @@ class JsonReporter
             ];
         }
 
+        $authorData = [];
+
+        foreach ($result->topAuthors(10) as $author => $score) {
+            $authorData[] = ['author' => $author, 'debt_score' => $score];
+        }
+
         $data = [
             'generated_at' => $result->generatedAt->format(\DateTimeInterface::ATOM),
             'grade' => $result->grade,
@@ -44,6 +50,7 @@ class JsonReporter
             'file_count' => count($result->fileResults),
             'item_count' => $result->totalItems(),
             'by_category' => $byCategoryData,
+            'authors'     => $authorData,
             'top_files' => array_map(
                 static fn ($f) => [
                     'path' => $f->relativePath,
