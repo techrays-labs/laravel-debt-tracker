@@ -297,13 +297,18 @@ The exported `DEBT_REPORT.md` includes a shields.io badge you can embed in your 
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+Contributions are welcome!
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and how to add a new detector
+- Read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating in discussions or submitting contributions
+- Report security vulnerabilities privately via [SECURITY.md](SECURITY.md) — do not open a public issue
+- Use the [Bug Report](https://github.com/techrays-labs/laravel-debt-tracker/issues/new?template=bug_report.md) or [Feature Request](https://github.com/techrays-labs/laravel-debt-tracker/issues/new?template=feature_request.md) issue templates
 
 ```bash
 git clone https://github.com/techrays-labs/laravel-debt-tracker
 cd laravel-debt-tracker
 composer install
-./vendor/bin/pest
+php vendor/bin/testbench package:test
 ```
 
 ---
