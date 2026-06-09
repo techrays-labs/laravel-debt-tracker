@@ -43,7 +43,7 @@ it('flags unused private constant', function () {
 
 it('does not flag used private method', function () {
     $items = deadCodeFixtureItems();
-    $found = array_filter($items, fn ($i) => str_contains($i->description, 'usedPrivateMethod'));
+    $found = array_filter($items, fn ($i) => str_contains($i->description, 'calledPrivateMethod'));
 
     expect($found)->toBeEmpty();
 });

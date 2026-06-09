@@ -19,7 +19,7 @@ class DeadCodeFixture
         return 'never called';
     }
 
-    private function usedPrivateMethod(): string     // USED — must NOT be flagged
+    private function calledPrivateMethod(): string     // USED — must NOT be flagged
     {
         return 'called below';
     }
@@ -32,6 +32,6 @@ class DeadCodeFixture
     {
         $x = $this->usedProperty;
 
-        return $this->usedPrivateMethod();
+        return $this->calledPrivateMethod();
     }
 }
