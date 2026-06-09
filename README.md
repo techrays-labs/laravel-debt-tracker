@@ -34,7 +34,7 @@
 
 > **"We should fix this eventually"** — every engineering team, forever.
 >
-> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across six categories, assigns a score, estimates developer hours to resolve, and produces a Markdown or JSON report you can actually show your product manager.
+> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across nine detectors, assigns a score, estimates developer hours to resolve, and produces a Markdown or JSON report you can actually show your product manager.
 
 ---
 
@@ -278,7 +278,7 @@ The exported `DEBT_REPORT.md` includes a shields.io badge you can embed in your 
 
 ```json
 {
-  "generated_at": "2026-06-08T19:49:00+00:00",
+  "generated_at": "2026-06-09T19:49:00+00:00",
   "grade": "B",
   "total_score": 141,
   "estimated_hours": 35.3,
