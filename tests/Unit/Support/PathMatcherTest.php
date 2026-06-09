@@ -77,3 +77,24 @@ it('matches database/seeders sub-path correctly', function (): void {
         'database/seeders'
     ))->toBeTrue();
 });
+
+// ── nWidart/laravel-modules real-world scenario ───────────────────────────────
+// When scan_paths = ['Modules'], Finder roots inside Modules/ so relative paths
+// are "User/tests/..." — no "Modules/" prefix.  The fix matches the ABSOLUTE
+// path so "Modules/User/tests" is always found regardless of scan root.
+
+it('matches absolute path from Modules root — simulates nWidart modules layout', function (): void {
+    // Absolute path as Finder::getRealPath() returns it
+    $absolute = '/var/www/project/Modules/User/tests/Feature/Http/Controllers/UserControllerTest.php';
+
+    expect(PathMatcher::matches($absolute, 'Modules/User/tests'))->toBeTrue();
+    expect(PathMatcher::matches($absolute, 'Modules/*/tests'))->toBeTrue();
+    expect(PathMatcher::matches($absolute, 'Modules/User/tests/Feature/Http/Controllers'))->toBeTrue();
+});
+
+it('does not exclude non-test files under Modules/User', function (): void {
+    $absolute = '/var/www/project/Modules/User/Http/Controllers/UserController.php';
+
+    expect(PathMatcher::matches($absolute, 'Modules/User/tests'))->toBeFalse();
+    expect(PathMatcher::matches($absolute, 'Modules/*/tests'))->toBeFalse();
+});

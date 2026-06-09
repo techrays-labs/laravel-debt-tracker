@@ -3,9 +3,10 @@
 ## [1.2.3] - 2026-06-09
 
 ### Fixed
-- `exclude_paths` now correctly handles path-based patterns such as `Modules/User/tests` and glob patterns such as `Modules/*/tests` — previously only bare directory names (e.g. `tests`) were respected; path entries were silently ignored because `Finder::exclude()` only understands directory basenames
-- `security_exclude_paths` and the coverage detector's excluded paths now also support glob wildcards via the new `PathMatcher` utility
-- Added `src/Support/PathMatcher` — shared utility that normalises separators and converts `*` to a single-segment regex so exclusion patterns are consistent across all three code paths
+- `exclude_paths` with path-based patterns (`Modules/User/tests`, `Modules/*/tests`) now correctly excludes files when `scan_paths` points inside a subdirectory (e.g. `['Modules']`). The previous approach used Symfony Finder's `notPath()` which matches against the *relative* path from the `in()` root — so when scanning `in('Modules/')`, relative paths start with `User/…` and `Modules/User/tests` was never found. Exclusion is now applied against the **absolute path** of each file, which always contains the full directory chain regardless of scan root
+- `exclude_paths` bare directory names (e.g. `tests`, `vendor`) continue to use `Finder::exclude()` for efficient whole-subtree pruning during traversal
+- `security_exclude_paths` and the coverage detector's excluded paths also support glob wildcards via the new `PathMatcher` utility
+- Added `src/Support/PathMatcher` — shared utility that normalises separators and converts `*` to a single-segment regex so exclusion patterns are consistent across all code paths
 
 ## [1.2.2] - 2026-06-09
 

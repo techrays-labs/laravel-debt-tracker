@@ -19,6 +19,7 @@ use TechRaysLabs\DebtTracker\Detectors\SecuritySmellDetector;
 use TechRaysLabs\DebtTracker\Detectors\TodoDetector;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
+use TechRaysLabs\DebtTracker\Support\PathMatcher;
 use TechRaysLabs\DebtTracker\Scoring\HoursEstimator;
 use TechRaysLabs\DebtTracker\Scoring\ScoreCalculator;
 use TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult;
@@ -232,18 +233,23 @@ class DebtTracker
 
         $defaultExclude = ['vendor', 'node_modules', 'storage', 'bootstrap/cache'];
 
+        // Plain names (e.g. "tests", "vendor") → Finder::exclude() prunes whole
+        // sub-trees during traversal; this is efficient and correct for basenames.
+        //
+        // Path patterns (e.g. "Modules/User/tests", "Modules/*/tests") must be
+        // matched against the ABSOLUTE path of each file, not the relative path
+        // that Finder builds from its in() root.  When scan_paths = ['Modules'],
+        // Finder roots itself inside Modules/ so relative paths start with
+        // "User/…" — "Modules/User/tests" would never appear in them.
+        // Matching against the absolute path sidesteps the in() root entirely.
+        $pathPatterns = [];
+
         foreach (array_merge($defaultExclude, $excludePaths) as $excluded) {
             $excluded = str_replace('\\', '/', $excluded);
 
             if (str_contains($excluded, '/')) {
-                // Path-based pattern (e.g. "Modules/User/tests" or "Modules/*/tests").
-                // Finder::exclude() only understands bare directory names, so we use
-                // notPath() which runs Symfony's glob-aware matcher against each
-                // file's relative pathname.
-                $finder->notPath($excluded);
+                $pathPatterns[] = $excluded;
             } else {
-                // Plain directory name (e.g. "tests", "vendor").
-                // exclude() prunes entire sub-trees efficiently during traversal.
                 $finder->exclude($excluded);
             }
         }
@@ -251,7 +257,25 @@ class DebtTracker
         $files = [];
 
         foreach ($finder as $file) {
-            $files[] = $file->getRealPath();
+            $absolutePath = $file->getRealPath();
+
+            if ($pathPatterns !== []) {
+                $normalisedPath = str_replace('\\', '/', $absolutePath);
+                $skip = false;
+
+                foreach ($pathPatterns as $pattern) {
+                    if (PathMatcher::matches($normalisedPath, $pattern)) {
+                        $skip = true;
+                        break;
+                    }
+                }
+
+                if ($skip) {
+                    continue;
+                }
+            }
+
+            $files[] = $absolutePath;
         }
 
         return $files;
