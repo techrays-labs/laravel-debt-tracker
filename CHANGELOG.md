@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2026-06-09
+
+### Added
+- Security Smell Detector: flags `eval()`/`shell_exec()`/`exec()`, hardcoded credentials, `md5()`/`sha1()` on password-like variables, SQL string concatenation, `unserialize()` on variable input, and `dd()`/`var_dump()` debug leakage
+- Dead Code Detector: flags unused `private` methods (score 8), properties (score 5), and constants (score 3) within their own class; skips magic methods, Laravel lifecycle methods, and constructor-promoted properties
+- Git Author Leaderboard: all debt items are grouped by git blame author and surfaced as a "Top Debt Authors" table in terminal output, a `## Debt by Author` section in Markdown reports, and an `authors` array in JSON reports
+- `detectors.security` and `detectors.dead_code` config keys (both default `true`)
+- `security_exclude_paths` config key — files whose path contains any listed string are skipped by the security detector (default: `['tests', 'database/seeders']`)
+- `dead_code_ignore_methods` config key — extra method names to never flag as dead code
+
 ## [1.1.1] - 2026-06-08
 
 ### Fixed
