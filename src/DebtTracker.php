@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker;
 
+use Closure;
 use Symfony\Component\Finder\Finder;
 use TechRaysLabs\DebtTracker\Analyzers\AstParser;
 use TechRaysLabs\DebtTracker\Analyzers\ClassAnalyzer;
@@ -42,6 +43,7 @@ class DebtTracker
         array $paths = [],
         array $excludePaths = [],
         array $onlyDetectors = [],
+        ?Closure $onProgress = null,
     ): ScanResult {
         $projectRoot = $this->config['project_root'] ?? getcwd();
         $scanPaths = $paths ?: ($this->config['scan_paths'] ?? ['app']);
@@ -74,7 +76,13 @@ class DebtTracker
         $phpFiles = $this->collectFiles($projectRoot, $scanPaths, $exclude);
         $fileResults = [];
 
-        foreach ($phpFiles as $file) {
+        $totalFiles = count($phpFiles);
+
+        foreach ($phpFiles as $index => $file) {
+            if ($onProgress !== null) {
+                $onProgress($index + 1, $totalFiles, $file);
+            }
+
             $result = $fileAnalyzer->analyze($file);
 
             if ($result->itemCount > 0) {

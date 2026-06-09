@@ -25,7 +25,6 @@ class TerminalReporter
      */
     public function render(ScanResult $result): void
     {
-        $this->renderHeader();
         $this->renderSummary($result);
         $this->renderCategoryTable($result->byCategory);
         $this->renderFilesTable($result->topFiles());
