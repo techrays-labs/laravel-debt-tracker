@@ -6,6 +6,7 @@ namespace TechRaysLabs\DebtTracker\Detectors;
 
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
+use TechRaysLabs\DebtTracker\Support\PathMatcher;
 use TechRaysLabs\DebtTracker\ValueObjects\DebtItem;
 
 /**
@@ -57,7 +58,7 @@ class SecuritySmellDetector implements DetectorInterface
         $normalised = str_replace('\\', '/', $filePath);
 
         foreach ($this->excludePaths as $excluded) {
-            if (str_contains($normalised, $excluded)) {
+            if (PathMatcher::matches($normalised, $excluded)) {
                 return [];
             }
         }

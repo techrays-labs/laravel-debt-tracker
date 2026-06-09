@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3] - 2026-06-09
+
+### Fixed
+- `exclude_paths` now correctly handles path-based patterns such as `Modules/User/tests` and glob patterns such as `Modules/*/tests` — previously only bare directory names (e.g. `tests`) were respected; path entries were silently ignored because `Finder::exclude()` only understands directory basenames
+- `security_exclude_paths` and the coverage detector's excluded paths now also support glob wildcards via the new `PathMatcher` utility
+- Added `src/Support/PathMatcher` — shared utility that normalises separators and converts `*` to a single-segment regex so exclusion patterns are consistent across all three code paths
+
 ## [1.2.2] - 2026-06-09
 
 ### Fixed
