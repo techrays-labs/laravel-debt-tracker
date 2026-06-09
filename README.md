@@ -88,11 +88,10 @@ php artisan debt:scan
 ```
 
 ```
-╔══════════════════════════════════════════════════════════╗
-║       Laravel Debt Tracker · by Techrays Labs            ║
-╚══════════════════════════════════════════════════════════╝
+┌ Laravel Debt Tracker · by Techrays Labs ──────────────────┐
 
-  Scanning 312 files...  ████████████████████  Done
+  Scanning files  ████████████████░░░░  249/312
+  app/Services/LegacyPaymentService.php
 
   Project Grade: C    Total Score: 412    Est. Hours: 103h
 
@@ -117,6 +116,8 @@ php artisan debt:scan
   │ app/Http/Controllers/OrderController   │   9   │  72   │
   │ ...                                    │       │       │
   └────────────────────────────────────────┴───────┴───────┘
+
+└ Scan complete · Grade: C · Score: 412 · 47 items found ───┘
 ```
 
 ### Export to Markdown
