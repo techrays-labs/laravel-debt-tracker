@@ -20,6 +20,7 @@ class MarkdownReporter
             $this->renderHeader($result),
             $this->renderExecutiveSummary($result),
             $this->renderCategoryTable($result),
+            $this->renderAuthorTable($result),
             $this->renderTopFiles($result),
             $this->renderTopClasses($result),
             $this->renderFullBreakdown($result),
@@ -103,11 +104,13 @@ class MarkdownReporter
         ];
 
         $labels = [
-            'todo' => 'TODOs / FIXMEs',
+            'todo'       => 'TODOs / FIXMEs',
             'complexity' => 'Complexity',
-            'coverage' => 'Missing Test Coverage',
+            'coverage'   => 'Missing Test Coverage',
             'dependency' => 'Outdated Dependencies',
             'n1_queries' => 'N+1 Query Patterns',
+            'security'   => 'Security Smells',
+            'dead_code'  => 'Dead Code',
         ];
 
         foreach ($result->byCategory as $type => $score) {
@@ -115,6 +118,39 @@ class MarkdownReporter
             $lines[] = "| {$label} | {$score} |";
         }
 
+        $lines[] = '';
+
+        return implode("\n", $lines);
+    }
+
+    private function renderAuthorTable(ScanResult $result): string
+    {
+        $authors = $result->topAuthors(10);
+
+        // Skip section if only 'Unknown' authors
+        $knownAuthors = array_filter(
+            $authors,
+            static fn ($score, $author) => $author !== 'Unknown',
+            ARRAY_FILTER_USE_BOTH,
+        );
+
+        if (empty($knownAuthors)) {
+            return '';
+        }
+
+        $lines = [
+            '## Debt by Author',
+            '',
+            '| Author | Debt Score |',
+            '|--------|------------|',
+        ];
+
+        foreach ($authors as $author => $score) {
+            $lines[] = "| {$author} | {$score} |";
+        }
+
+        $lines[] = '';
+        $lines[] = '> Higher score = more debt attributed to this author.';
         $lines[] = '';
 
         return implode("\n", $lines);

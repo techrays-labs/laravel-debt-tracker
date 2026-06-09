@@ -12,7 +12,9 @@ use TechRaysLabs\DebtTracker\Detectors\ComplexityDetector;
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
 use TechRaysLabs\DebtTracker\Detectors\CoverageDetector;
 use TechRaysLabs\DebtTracker\Detectors\DependencyDetector;
+use TechRaysLabs\DebtTracker\Detectors\DeadCodeDetector;
 use TechRaysLabs\DebtTracker\Detectors\N1QueryDetector;
+use TechRaysLabs\DebtTracker\Detectors\SecuritySmellDetector;
 use TechRaysLabs\DebtTracker\Detectors\TodoDetector;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
@@ -118,6 +120,14 @@ class DebtTracker
         $hoursPerPoint = $this->config['cost']['hours_per_point'] ?? 0.25;
         $hours = $estimator->estimate($totalScore, $hoursPerPoint);
 
+        // Compute byAuthor — group all items by git blame author
+        $byAuthor = [];
+
+        foreach ($allItems as $item) {
+            $author = $item->gitAuthor ?? 'Unknown';
+            $byAuthor[$author] = ($byAuthor[$author] ?? 0) + $item->finalScore();
+        }
+
         return new ScanResult(
             fileResults: $fileResults,
             classResults: $classResults,
@@ -127,6 +137,7 @@ class DebtTracker
             byCategory: $byCategory,
             generatedAt: new \DateTimeImmutable,
             projectPath: $projectRoot,
+            byAuthor: $byAuthor,
         );
     }
 
@@ -173,6 +184,16 @@ class DebtTracker
         $all[] = new N1QueryDetector(
             enabled: $isEnabled('n1_queries'),
             ignoreProperties: $this->config['n1_ignore_properties'] ?? ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
+        );
+
+        $all[] = new SecuritySmellDetector(
+            enabled: $isEnabled('security'),
+            excludePaths: $this->config['security_exclude_paths'] ?? ['tests', 'database/seeders'],
+        );
+
+        $all[] = new DeadCodeDetector(
+            enabled: $isEnabled('dead_code'),
+            ignoreMethods: $this->config['dead_code_ignore_methods'] ?? [],
         );
 
         return $all;

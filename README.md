@@ -34,7 +34,7 @@
 
 > **"We should fix this eventually"** — every engineering team, forever.
 >
-> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across six categories, assigns a score, estimates developer hours to resolve, and produces a Markdown or JSON report you can actually show your product manager.
+> Laravel Debt Tracker makes the invisible visible. It scans your codebase for technical debt across nine detectors, assigns a score, estimates developer hours to resolve, and produces a Markdown or JSON report you can actually show your product manager.
 
 ---
 
@@ -43,9 +43,12 @@
 - **TODO / FIXME detection** — finds every deferred problem in your comments
 - **Complexity analysis** — cyclomatic complexity, long methods, God classes, deep nesting
 - **N+1 query detection** — flags Eloquent lazy-load patterns inside loops and collection iterators
+- **Security smell detection** — flags eval/exec, hardcoded credentials, md5/sha1 on passwords, SQL concatenation, unsafe unserialize, and debug leakage
+- **Dead code detection** — flags unused private methods, properties, and constants within classes
 - **Test coverage heuristics** — no Xdebug required; detects untested classes and methods
 - **Dependency audit** — flags outdated or abandoned Composer packages
 - **Git blame enrichment** — older debt scores higher; age is the multiplier
+- **Git author leaderboard** — surfaces who owns the most debt across terminal, Markdown, and JSON reports
 - **Debt grading** — A through F, with estimated dev hours to resolve
 - **Markdown & JSON export** — shareable reports with a shield badge for your README
 
@@ -101,7 +104,9 @@ php artisan debt:scan
   │ Complexity              │  ---  │  180     │
   │ Missing Test Coverage   │  ---  │   88     │
   │ Outdated Dependencies   │  ---  │   32     │
-  │ N+1 Query Patterns      │  ---  │   24     │
+  │ N+1 Queries             │  ---  │   24     │
+  │ Security Smells         │  ---  │   18     │
+  │ Dead Code               │  ---  │    6     │
   └─────────────────────────┴───────┴──────────┘
 
   Top 10 Worst Files:
@@ -153,7 +158,7 @@ php artisan debt:scan --path=app/Services
 ### Run specific detectors only
 
 ```bash
-php artisan debt:scan --only=todos,complexity,n1_queries
+php artisan debt:scan --only=todos,complexity,security,dead_code
 ```
 
 ### Inspect a single file or class
@@ -194,9 +199,13 @@ return [
         'dependencies' => true,
         'git_age'      => true,
         'n1_queries'   => true,
+        'security'     => true,
+        'dead_code'    => true,
     ],
 
-    'n1_ignore_properties' => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
+    'n1_ignore_properties'     => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
+    'security_exclude_paths'   => ['tests', 'database/seeders'],
+    'dead_code_ignore_methods' => [],
 
     'export' => [
         'path'      => base_path('DEBT_REPORT.md'),
@@ -226,6 +235,15 @@ Item Score = Base Weight × Age Multiplier
 | Abandoned package | 20 |
 | N+1 property fetch | 6 |
 | N+1 chained query | 10 |
+| Dangerous function call (eval/exec) | 20 |
+| Unsafe unserialize | 20 |
+| Hardcoded credential | 15 |
+| SQL concatenation | 15 |
+| Weak hashing (md5/sha1) | 10 |
+| Debug leakage (dd/dump) | 5 |
+| Unused private method | 8 |
+| Unused private property | 5 |
+| Unused private constant | 3 |
 
 | Debt Age | Multiplier |
 |---|---|
@@ -260,13 +278,14 @@ The exported `DEBT_REPORT.md` includes a shields.io badge you can embed in your 
 
 ```json
 {
-  "generated_at": "2026-06-08T19:49:00+00:00",
+  "generated_at": "2026-06-09T19:49:00+00:00",
   "grade": "B",
   "total_score": 141,
   "estimated_hours": 35.3,
   "file_count": 18,
   "item_count": 21,
   "by_category": [...],
+  "authors": [{"author": "Jane Doe", "debt_score": 87}, ...],
   "top_files": [...],
   "top_classes": [...],
   "items": [...],
