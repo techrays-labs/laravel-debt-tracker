@@ -158,9 +158,38 @@ php artisan debt:scan --path=app/Services
 
 ### Run specific detectors only
 
+Every detector has a key you can pass to `--only`. Combine as many as you need with commas.
+
 ```bash
-php artisan debt:scan --only=todos,complexity,security,dead_code
+# TODOs, FIXMEs, HACKs, XXXs, TEMPs and REFACTORs in comments
+php artisan debt:scan --only=todos
+
+# Cyclomatic complexity, long methods, God classes, deep nesting
+php artisan debt:scan --only=complexity
+
+# Missing test files and untested public methods
+php artisan debt:scan --only=coverage
+
+# Outdated or abandoned Composer packages
+php artisan debt:scan --only=dependencies
+
+# Eloquent lazy-load (N+1) patterns inside loops and collection iterators
+php artisan debt:scan --only=n1_queries
+
+# Security smells: eval/exec, hardcoded credentials, weak hashing,
+# SQL concatenation, unsafe unserialize, debug leakage (dd/dump)
+php artisan debt:scan --only=security
+
+# Dead code: unused private methods, properties and constants
+php artisan debt:scan --only=dead_code
+
+# Combine any detectors in a single run
+php artisan debt:scan --only=security,dead_code
+php artisan debt:scan --only=todos,complexity,n1_queries
+php artisan debt:scan --only=todos,complexity,coverage,dependencies,n1_queries,security,dead_code
 ```
+
+> **Note:** `--only` works at the detector level. For example, `--only=dead_code` reports unused private methods, properties, and constants together — there is no sub-filter within a detector.
 
 ### Inspect a single file or class
 
