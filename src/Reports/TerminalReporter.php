@@ -30,6 +30,7 @@ class TerminalReporter
         $this->renderCategoryTable($result->byCategory);
         $this->renderFilesTable($result->topFiles());
         $this->renderClassesTable($result->topClasses());
+        $this->renderAuthorsTable($result);
         $this->output->writeln('');
         $this->output->writeln('  <comment>Run with --export=markdown or --export=json to save the full report.</comment>');
         $this->output->writeln('');
@@ -66,11 +67,13 @@ class TerminalReporter
     private function renderCategoryTable(array $byCategory): void
     {
         $labels = [
-            'todo' => 'TODOs / FIXMEs',
+            'todo'       => 'TODOs / FIXMEs',
             'complexity' => 'Complexity',
-            'coverage' => 'Missing Test Coverage',
+            'coverage'   => 'Missing Test Coverage',
             'dependency' => 'Outdated Dependencies',
             'n1_queries' => 'N+1 Queries',
+            'security'   => 'Security Smells',
+            'dead_code'  => 'Dead Code',
         ];
 
         // Merge known categories (with 0 defaults) over actual results so all
@@ -150,6 +153,36 @@ class TerminalReporter
         }
 
         $this->output->writeln('  └──────────────────────────────────────────┴───────┴───────┘');
+        $this->output->writeln('');
+    }
+
+    private function renderAuthorsTable(ScanResult $result): void
+    {
+        $authors = $result->topAuthors(10);
+
+        // Only render if at least one named author (not just 'Unknown')
+        $knownAuthors = array_filter(
+            $authors,
+            static fn ($score, $author) => $author !== 'Unknown',
+            ARRAY_FILTER_USE_BOTH,
+        );
+
+        if (empty($knownAuthors)) {
+            return;
+        }
+
+        $this->output->writeln('  <options=bold>Top Debt Authors:</>');
+        $this->output->writeln('  ┌──────────────────────────┬────────────┐');
+        $this->output->writeln('  │ Author                   │ Debt Score │');
+        $this->output->writeln('  ├──────────────────────────┼────────────┤');
+
+        foreach ($authors as $author => $score) {
+            $display = strlen($author) > 24 ? substr($author, 0, 21).'...' : $author;
+            $this->output->writeln(sprintf('  │ %-24s │ %10d │', $display, $score));
+        }
+
+        $this->output->writeln('  └──────────────────────────┴────────────┘');
+        $this->output->writeln('  <comment>Higher score = more debt attributed to this author.</comment>');
         $this->output->writeln('');
     }
 
