@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1] - 2026-06-09
+
+### Improved
+- Real-time per-file progress bar during `debt:scan` using `laravel/prompts` — no more silent wait on large projects
+- Polished CLI: `intro()` header replaces ASCII art box, `outro()` shows grade + score on completion, export paths shown via `note()`
+- Added `laravel/prompts` as an explicit dependency (was previously transitive via `laravel/framework`)
+- `debt:scan` signature updated to document `security` and `dead_code` in the `--only` help text
+
 ## [1.2.0] - 2026-06-09
 
 ### Added
