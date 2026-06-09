@@ -233,7 +233,19 @@ class DebtTracker
         $defaultExclude = ['vendor', 'node_modules', 'storage', 'bootstrap/cache'];
 
         foreach (array_merge($defaultExclude, $excludePaths) as $excluded) {
-            $finder->exclude($excluded);
+            $excluded = str_replace('\\', '/', $excluded);
+
+            if (str_contains($excluded, '/')) {
+                // Path-based pattern (e.g. "Modules/User/tests" or "Modules/*/tests").
+                // Finder::exclude() only understands bare directory names, so we use
+                // notPath() which runs Symfony's glob-aware matcher against each
+                // file's relative pathname.
+                $finder->notPath($excluded);
+            } else {
+                // Plain directory name (e.g. "tests", "vendor").
+                // exclude() prunes entire sub-trees efficiently during traversal.
+                $finder->exclude($excluded);
+            }
         }
 
         $files = [];

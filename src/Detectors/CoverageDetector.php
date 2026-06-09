@@ -8,6 +8,7 @@ use PhpParser\Node\Stmt;
 use TechRaysLabs\DebtTracker\Analyzers\AstParser;
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
+use TechRaysLabs\DebtTracker\Support\PathMatcher;
 use TechRaysLabs\DebtTracker\ValueObjects\DebtItem;
 
 /**
@@ -140,7 +141,7 @@ class CoverageDetector implements DetectorInterface
     private function isExcluded(string $filePath): bool
     {
         foreach ($this->excludePaths as $excluded) {
-            if (str_contains($filePath, $excluded)) {
+            if (PathMatcher::matches($filePath, $excluded)) {
                 return true;
             }
         }
