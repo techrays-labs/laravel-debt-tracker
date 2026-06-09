@@ -1,12 +1,16 @@
 # Changelog
 
+## [1.2.4] - 2026-06-09
+
+### Fixed
+- `exclude_paths` path patterns (`Modules/User/tests`, `Modules/*/tests`) now work correctly when `scan_paths` points inside a subdirectory (e.g. `['Modules']`). The v1.2.3 fix used Symfony Finder's `notPath()` which measures against the *relative* path from the `in()` root — so when scanning `in('Modules/')`, relative paths start with `User/…` and `Modules/User/tests` was never found. Exclusion is now applied against the **absolute path** (`getRealPath()`) of each file, which always contains the full directory chain regardless of scan root. This fixes the nWidart/laravel-modules layout where `Modules/` sits at the same level as `app/`
+
 ## [1.2.3] - 2026-06-09
 
 ### Fixed
-- `exclude_paths` with path-based patterns (`Modules/User/tests`, `Modules/*/tests`) now correctly excludes files when `scan_paths` points inside a subdirectory (e.g. `['Modules']`). The previous approach used Symfony Finder's `notPath()` which matches against the *relative* path from the `in()` root — so when scanning `in('Modules/')`, relative paths start with `User/…` and `Modules/User/tests` was never found. Exclusion is now applied against the **absolute path** of each file, which always contains the full directory chain regardless of scan root
-- `exclude_paths` bare directory names (e.g. `tests`, `vendor`) continue to use `Finder::exclude()` for efficient whole-subtree pruning during traversal
-- `security_exclude_paths` and the coverage detector's excluded paths also support glob wildcards via the new `PathMatcher` utility
-- Added `src/Support/PathMatcher` — shared utility that normalises separators and converts `*` to a single-segment regex so exclusion patterns are consistent across all code paths
+- `exclude_paths` now supports path-based patterns (e.g. `Modules/User/tests`) and glob wildcards (e.g. `Modules/*/tests`) — previously `Finder::exclude()` was used for all entries, which only understands bare directory basenames and silently ignored anything containing a `/`
+- `security_exclude_paths` and the coverage detector's excluded paths also support glob wildcards
+- Added `src/Support/PathMatcher` — shared utility that normalises path separators and converts `*` to a single-segment regex so exclusion patterns work consistently across all detectors
 
 ## [1.2.2] - 2026-06-09
 
