@@ -18,6 +18,7 @@ final class ScanResult
      * @param  array<string,int>  $byCategory  Score per debt category
      * @param  \DateTimeImmutable  $generatedAt  Timestamp of the scan
      * @param  string  $projectPath  Absolute path to the scanned project
+     * @param  array<string,int>  $byAuthor    Total debt score per git author
      */
     public function __construct(
         public readonly array $fileResults,
@@ -28,6 +29,7 @@ final class ScanResult
         public readonly array $byCategory,
         public readonly \DateTimeImmutable $generatedAt,
         public readonly string $projectPath,
+        public readonly array $byAuthor = [],
     ) {}
 
     /**
@@ -56,6 +58,19 @@ final class ScanResult
         usort($sorted, static fn (ClassDebtResult $a, ClassDebtResult $b) => $b->totalScore <=> $a->totalScore);
 
         return array_slice($sorted, 0, $n);
+    }
+
+    /**
+     * Returns the N authors with the highest total debt score, sorted descending.
+     *
+     * @return array<string,int>
+     */
+    public function topAuthors(int $n = 10): array
+    {
+        $sorted = $this->byAuthor;
+        arsort($sorted);
+
+        return array_slice($sorted, 0, $n, true);
     }
 
     /**
