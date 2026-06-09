@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.2] - 2026-06-09
+
+### Fixed
+- `laravel/prompts` version constraint broadened from `^0.1|^1.0` to `^0.1|^0.2|^0.3` — the previous constraint excluded `0.3.x` which Laravel 12 and 13 ship with, causing `composer install` to fail on fresh installs
+
 ## [1.2.1] - 2026-06-09
 
 ### Improved
