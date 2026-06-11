@@ -9,6 +9,10 @@ use TechRaysLabs\DebtTracker\Commands\ScanCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowClassCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowFileCommand;
 use TechRaysLabs\DebtTracker\Commands\SummaryCommand;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtAuthorsCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtFilesCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtScoreCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtSummaryCard;
 use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
 
@@ -45,6 +49,22 @@ class DebtTrackerServiceProvider extends ServiceProvider
                 ShowFileCommand::class,
                 ShowClassCommand::class,
             ]);
+        }
+
+        if (
+            class_exists(\Laravel\Pulse\Pulse::class) &&
+            class_exists(\Livewire\Component::class)
+        ) {
+            $this->loadViewsFrom(__DIR__.'/../resources/views/pulse', 'debt-tracker-pulse');
+
+            $this->publishes([
+                __DIR__.'/../resources/views/pulse' => resource_path('views/vendor/debt-tracker/pulse'),
+            ], 'debt-tracker-pulse-views');
+
+            \Livewire\Livewire::component('debt-tracker-summary-card', DebtSummaryCard::class);
+            \Livewire\Livewire::component('debt-tracker-score-card', DebtScoreCard::class);
+            \Livewire\Livewire::component('debt-tracker-files-card', DebtFilesCard::class);
+            \Livewire\Livewire::component('debt-tracker-authors-card', DebtAuthorsCard::class);
         }
     }
 }
