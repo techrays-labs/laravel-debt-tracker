@@ -37,4 +37,7 @@ return [
     'n1_ignore_properties'     => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
     'security_exclude_paths'   => ['tests', 'database/seeders'],
     'dead_code_ignore_methods' => [],
+    'pulse' => [
+        'enabled' => true,
+    ],
 ];
