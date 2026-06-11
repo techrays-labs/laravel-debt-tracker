@@ -7,7 +7,7 @@ use TechRaysLabs\DebtTracker\Detectors\DeadCodeDetector;
 
 function deadCodeFixtureItems(): array
 {
-    $fixture = __DIR__ . '/../../Fixtures/DeadCodeFixture.php';
+    $fixture = __DIR__.'/../../Fixtures/DeadCodeFixture.php';
     $parser = new AstParser;
     $ast = $parser->parse($fixture);
 
@@ -84,7 +84,7 @@ it('flags exactly 3 items in the fixture (method + property + constant)', functi
 });
 
 it('returns empty array when detector is disabled', function () {
-    $fixture = __DIR__ . '/../../Fixtures/DeadCodeFixture.php';
+    $fixture = __DIR__.'/../../Fixtures/DeadCodeFixture.php';
     $parser = new AstParser;
     $ast = $parser->parse($fixture);
 
@@ -95,7 +95,7 @@ it('returns empty array when detector is disabled', function () {
 });
 
 it('returns empty array when no ast context provided', function () {
-    $fixture = __DIR__ . '/../../Fixtures/DeadCodeFixture.php';
+    $fixture = __DIR__.'/../../Fixtures/DeadCodeFixture.php';
     $detector = new DeadCodeDetector;
     $items = $detector->detect($fixture, []);
 

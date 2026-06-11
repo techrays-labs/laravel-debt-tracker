@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use TechRaysLabs\DebtTracker\Exceptions\ScanFailedException;
 use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\ValueObjects\ClassDebtResult;
 use TechRaysLabs\DebtTracker\ValueObjects\DebtItem;
@@ -108,7 +109,7 @@ it('throws ScanFailedException when path is not writable', function () {
     $reporter = new JsonReporter;
 
     expect(fn () => $reporter->writeToFile(makeJsonScanResult(), '/nonexistent/dir/report.json'))
-        ->toThrow(\TechRaysLabs\DebtTracker\Exceptions\ScanFailedException::class);
+        ->toThrow(ScanFailedException::class);
 });
 
 it('grade matches the scan result grade', function () {
@@ -120,19 +121,19 @@ it('grade matches the scan result grade', function () {
 });
 
 it('includes authors key in JSON output', function () {
-    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+    $result = new ScanResult(
         fileResults: [],
         classResults: [],
         totalScore: 0,
         grade: 'A',
         estimatedHours: 0,
         byCategory: [],
-        generatedAt: new \DateTimeImmutable,
+        generatedAt: new DateTimeImmutable,
         projectPath: '/tmp',
         byAuthor: ['John Doe' => 142],
     );
 
-    $reporter = new \TechRaysLabs\DebtTracker\Reports\JsonReporter;
+    $reporter = new JsonReporter;
     $decoded = json_decode($reporter->generate($result), true);
 
     expect($decoded)->toHaveKey('authors');
@@ -140,19 +141,19 @@ it('includes authors key in JSON output', function () {
 });
 
 it('each authors entry has author and debt_score keys', function () {
-    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+    $result = new ScanResult(
         fileResults: [],
         classResults: [],
         totalScore: 0,
         grade: 'A',
         estimatedHours: 0,
         byCategory: [],
-        generatedAt: new \DateTimeImmutable,
+        generatedAt: new DateTimeImmutable,
         projectPath: '/tmp',
         byAuthor: ['John Doe' => 142, 'Jane Smith' => 87],
     );
 
-    $reporter = new \TechRaysLabs\DebtTracker\Reports\JsonReporter;
+    $reporter = new JsonReporter;
     $decoded = json_decode($reporter->generate($result), true);
 
     expect($decoded['authors'][0])->toHaveKeys(['author', 'debt_score']);

@@ -12,16 +12,16 @@ use TechRaysLabs\DebtTracker\Analyzers\FileAnalyzer;
 use TechRaysLabs\DebtTracker\Detectors\ComplexityDetector;
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
 use TechRaysLabs\DebtTracker\Detectors\CoverageDetector;
-use TechRaysLabs\DebtTracker\Detectors\DependencyDetector;
 use TechRaysLabs\DebtTracker\Detectors\DeadCodeDetector;
+use TechRaysLabs\DebtTracker\Detectors\DependencyDetector;
 use TechRaysLabs\DebtTracker\Detectors\N1QueryDetector;
 use TechRaysLabs\DebtTracker\Detectors\SecuritySmellDetector;
 use TechRaysLabs\DebtTracker\Detectors\TodoDetector;
 use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
-use TechRaysLabs\DebtTracker\Support\PathMatcher;
 use TechRaysLabs\DebtTracker\Scoring\HoursEstimator;
 use TechRaysLabs\DebtTracker\Scoring\ScoreCalculator;
+use TechRaysLabs\DebtTracker\Support\PathMatcher;
 use TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult;
 use TechRaysLabs\DebtTracker\ValueObjects\ScanResult;
 
@@ -266,6 +266,7 @@ class DebtTracker
                 foreach ($pathPatterns as $pattern) {
                     if (PathMatcher::matches($normalisedPath, $pattern)) {
                         $skip = true;
+
                         break;
                     }
                 }

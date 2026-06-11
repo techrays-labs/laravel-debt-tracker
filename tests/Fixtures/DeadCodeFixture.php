@@ -25,8 +25,7 @@ class DeadCodeFixture
     }
 
     private function boot(): void                    // Laravel lifecycle — must NOT be flagged
-    {
-    }
+    {}
 
     public function callUsedThings(): string
     {

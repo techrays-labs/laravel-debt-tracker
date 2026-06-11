@@ -43,7 +43,7 @@ class ScanCommand extends Command
 
         intro('Laravel Debt Tracker · by Techrays Labs');
 
-        /** @var Progress|null $bar */
+        /** @var Progress<int>|null $bar */
         $bar = null;
 
         $result = $tracker->scan(

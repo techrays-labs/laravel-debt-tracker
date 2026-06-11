@@ -5,10 +5,17 @@ declare(strict_types=1);
 namespace TechRaysLabs\DebtTracker;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Pulse\Pulse;
+use Livewire\Component;
+use Livewire\LivewireManager;
 use TechRaysLabs\DebtTracker\Commands\ScanCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowClassCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowFileCommand;
 use TechRaysLabs\DebtTracker\Commands\SummaryCommand;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtAuthorsCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtFilesCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtScoreCard;
+use TechRaysLabs\DebtTracker\Pulse\Cards\DebtSummaryCard;
 use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
 
@@ -48,8 +55,8 @@ class DebtTrackerServiceProvider extends ServiceProvider
         }
 
         if (
-            class_exists(\Laravel\Pulse\Pulse::class) &&
-            class_exists(\Livewire\Component::class)
+            class_exists(Pulse::class) &&
+            class_exists(Component::class)
         ) {
             $this->loadViewsFrom(__DIR__.'/../resources/views/pulse', 'debt-tracker-pulse');
 
@@ -59,11 +66,11 @@ class DebtTrackerServiceProvider extends ServiceProvider
                 ], 'debt-tracker-pulse-views');
             }
 
-            $this->callAfterResolving('livewire', function (\Livewire\LivewireManager $livewire): void {
-                $livewire->component('debt-tracker-summary-card', \TechRaysLabs\DebtTracker\Pulse\Cards\DebtSummaryCard::class);
-                $livewire->component('debt-tracker-score-card', \TechRaysLabs\DebtTracker\Pulse\Cards\DebtScoreCard::class);
-                $livewire->component('debt-tracker-files-card', \TechRaysLabs\DebtTracker\Pulse\Cards\DebtFilesCard::class);
-                $livewire->component('debt-tracker-authors-card', \TechRaysLabs\DebtTracker\Pulse\Cards\DebtAuthorsCard::class);
+            $this->callAfterResolving('livewire', function (LivewireManager $livewire): void {
+                $livewire->component('debt-tracker-summary-card', DebtSummaryCard::class);
+                $livewire->component('debt-tracker-score-card', DebtScoreCard::class);
+                $livewire->component('debt-tracker-files-card', DebtFilesCard::class);
+                $livewire->component('debt-tracker-authors-card', DebtAuthorsCard::class);
             });
         }
     }

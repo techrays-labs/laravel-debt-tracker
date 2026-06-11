@@ -18,7 +18,7 @@ final class ScanResult
      * @param  array<string,int>  $byCategory  Score per debt category
      * @param  \DateTimeImmutable  $generatedAt  Timestamp of the scan
      * @param  string  $projectPath  Absolute path to the scanned project
-     * @param  array<string,int>  $byAuthor    Total debt score per git author
+     * @param  array<string,int>  $byAuthor  Total debt score per git author
      */
     public function __construct(
         public readonly array $fileResults,

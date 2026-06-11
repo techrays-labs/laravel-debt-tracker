@@ -22,7 +22,7 @@ class SecuritySmellFixture
 
     public function sqlConcatenation(string $userId): string
     {
-        return "SELECT * FROM users WHERE id = " . $userId; // SQL concat — score 15
+        return 'SELECT * FROM users WHERE id = '.$userId; // SQL concat — score 15
     }
 
     public function unsafeUnserialize(string $input): mixed

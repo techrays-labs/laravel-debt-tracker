@@ -20,13 +20,13 @@ final class PathMatcher
     /**
      * Returns true when $filePath matches the given $pattern.
      *
-     * @param string $filePath Absolute or relative file path (any separator).
-     * @param string $pattern  Plain segment, literal sub-path, or glob pattern.
+     * @param  string  $filePath  Absolute or relative file path (any separator).
+     * @param  string  $pattern  Plain segment, literal sub-path, or glob pattern.
      */
     public static function matches(string $filePath, string $pattern): bool
     {
         $filePath = str_replace('\\', '/', $filePath);
-        $pattern  = str_replace('\\', '/', $pattern);
+        $pattern = str_replace('\\', '/', $pattern);
 
         if (! str_contains($pattern, '*')) {
             // Fast path: simple substring / segment match.

@@ -144,7 +144,7 @@ class DeadCodeDetector implements DetectorInterface
             }
 
             if (! in_array($name, $calledMethods, true)) {
-                $line = $method->getStartLine() ?: 0;
+                $line = $method->getStartLine();
                 $items[] = $this->makeItem($filePath, $line, $git,
                     "Unused private method: {$name}()",
                     self::BASE_SCORE_METHOD,
@@ -166,7 +166,7 @@ class DeadCodeDetector implements DetectorInterface
                 }
 
                 if (! in_array($name, $fetchedProperties, true)) {
-                    $line = $prop->getStartLine() ?: 0;
+                    $line = $prop->getStartLine();
                     $items[] = $this->makeItem($filePath, $line, $git,
                         "Unused private property: \${$name}",
                         self::BASE_SCORE_PROPERTY,
@@ -185,7 +185,7 @@ class DeadCodeDetector implements DetectorInterface
                 $name = $const->name->name;
 
                 if (! in_array($name, $fetchedConstants, true)) {
-                    $line = $const->getStartLine() ?: 0;
+                    $line = $const->getStartLine();
                     $items[] = $this->makeItem($filePath, $line, $git,
                         "Unused private constant: {$name}",
                         self::BASE_SCORE_CONSTANT,

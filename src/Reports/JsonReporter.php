@@ -50,7 +50,7 @@ class JsonReporter
             'file_count' => count($result->fileResults),
             'item_count' => $result->totalItems(),
             'by_category' => $byCategoryData,
-            'authors'     => $authorData,
+            'authors' => $authorData,
             'top_files' => array_map(
                 static fn ($f) => [
                     'path' => $f->relativePath,
@@ -99,8 +99,9 @@ class JsonReporter
      */
     public function writeToFile(ScanResult $result, string $path): void
     {
-        set_error_handler(function () {
+        set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline): bool {
             // Suppress errors
+            return true;
         });
 
         try {

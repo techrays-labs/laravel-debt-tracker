@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
 use TechRaysLabs\DebtTracker\Tests\TestCase;
 
 uses(TestCase::class);
@@ -35,7 +36,7 @@ it('summary command outputs grade line', function () {
 });
 
 it('pushes result to Pulse when pulse.enabled is true', function (): void {
-    $mock = $this->mock(\TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor::class);
+    $mock = $this->mock(DebtPulseIngestor::class);
     $mock->shouldReceive('push')->once();
 
     config(['debt-tracker.pulse.enabled' => true]);
@@ -44,7 +45,7 @@ it('pushes result to Pulse when pulse.enabled is true', function (): void {
 });
 
 it('does not push to Pulse when pulse.enabled is false', function (): void {
-    $mock = $this->mock(\TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor::class);
+    $mock = $this->mock(DebtPulseIngestor::class);
     $mock->shouldNotReceive('push');
 
     config(['debt-tracker.pulse.enabled' => false]);

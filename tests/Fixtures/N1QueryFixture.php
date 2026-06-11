@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Tests\Fixtures;
 
+use App\Models\Post;
 use Illuminate\Support\Collection;
 
 /**
@@ -37,7 +38,7 @@ class N1QueryFixture
     public function renderPosts(array $posts): void
     {
         // Eager load present within 30 lines before foreach — suppresses flagging
-        $posts = \App\Models\Post::with('comments')->get();
+        $posts = Post::with('comments')->get();
         foreach ($posts as $post) {
             echo $post->comments;
         }

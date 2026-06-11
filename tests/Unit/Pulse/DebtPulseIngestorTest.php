@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\PulseServiceProvider;
+use Mockery\MockInterface;
 use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
 use TechRaysLabs\DebtTracker\Tests\TestCase;
 use TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult;
@@ -13,7 +14,7 @@ use TechRaysLabs\DebtTracker\ValueObjects\ScanResult;
 uses(TestCase::class);
 
 beforeAll(function (): void {
-    if (! class_exists(\Laravel\Pulse\Pulse::class)) {
+    if (! class_exists(Laravel\Pulse\Pulse::class)) {
         test()->skip('laravel/pulse not installed');
     }
 });
@@ -26,10 +27,8 @@ beforeEach(function (): void {
 /**
  * Create a spy on the Pulse facade that stubs record() to return a real Entry
  * instance so that the ->max() chain in DebtPulseIngestor resolves correctly.
- *
- * @return \Mockery\MockInterface
  */
-function pulseSpyWithEntryStub(): \Mockery\MockInterface
+function pulseSpyWithEntryStub(): MockInterface
 {
     $spy = Pulse::spy();
 
@@ -62,7 +61,7 @@ function makePulseScanResult(int $score = 150, string $grade = 'B'): ScanResult
         grade: $grade,
         estimatedHours: 37.5,
         byCategory: ['todos' => 50, 'complexity' => 100],
-        generatedAt: new \DateTimeImmutable('2026-06-11T10:00:00+00:00'),
+        generatedAt: new DateTimeImmutable('2026-06-11T10:00:00+00:00'),
         projectPath: '/project',
         byAuthor: ['Jane Doe' => 90, 'John Smith' => 60],
     );
@@ -143,11 +142,11 @@ it('does nothing when Pulse is not bound in the container', function (): void {
     // Temporarily unbind the Pulse class to simulate a missing Pulse installation.
     // The guard checks app()->bound(\Laravel\Pulse\Pulse::class), so removing the
     // binding makes push() return early without any Pulse calls.
-    $this->app->forgetInstance(\Laravel\Pulse\Pulse::class);
-    $this->app->offsetUnset(\Laravel\Pulse\Pulse::class);
+    $this->app->forgetInstance(Laravel\Pulse\Pulse::class);
+    $this->app->offsetUnset(Laravel\Pulse\Pulse::class);
 
     $ingestor = new DebtPulseIngestor;
-    expect(fn () => $ingestor->push(makePulseScanResult()))->not->toThrow(\Throwable::class);
+    expect(fn () => $ingestor->push(makePulseScanResult()))->not->toThrow(Throwable::class);
 
     // Re-register so other tests in the suite are unaffected.
     $this->app->register(PulseServiceProvider::class);

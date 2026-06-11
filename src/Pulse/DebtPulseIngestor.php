@@ -33,10 +33,10 @@ class DebtPulseIngestor
 
         // Snapshot: current grade, score, hours, item count, and category breakdown.
         Pulse::set('debt_summary', 'project', json_encode([
-            'grade'      => $result->grade,
-            'score'      => $result->totalScore,
-            'hours'      => $result->estimatedHours,
-            'items'      => $result->totalItems(),
+            'grade' => $result->grade,
+            'score' => $result->totalScore,
+            'hours' => $result->estimatedHours,
+            'items' => $result->totalItems(),
             'byCategory' => $result->byCategory,
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
 
@@ -44,7 +44,7 @@ class DebtPulseIngestor
         Pulse::set('debt_top_files', 'project', json_encode(
             array_map(
                 static fn (FileDebtResult $f): array => [
-                    'path'  => $f->relativePath,
+                    'path' => $f->relativePath,
                     'score' => $f->totalScore,
                 ],
                 $result->topFiles(10)

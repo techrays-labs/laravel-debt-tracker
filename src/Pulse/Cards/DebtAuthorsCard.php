@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Pulse\Cards;
 
+use Illuminate\View\View;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Card;
 use Livewire\Attributes\Lazy;
@@ -17,7 +18,7 @@ class DebtAuthorsCard extends Card
     /**
      * Render the debt authors leaderboard card.
      */
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         [$authors, $time, $runAt] = $this->remember(function (): mixed {
             $value = Pulse::values('debt_top_authors', ['project'])->first();
@@ -27,8 +28,8 @@ class DebtAuthorsCard extends Card
 
         return view('debt-tracker-pulse::debt-authors-card', [
             'authors' => $authors ?? [],
-            'time'    => $time,
-            'runAt'   => $runAt,
+            'time' => $time,
+            'runAt' => $runAt,
         ]);
     }
 }

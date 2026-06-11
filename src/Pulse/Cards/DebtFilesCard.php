@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Pulse\Cards;
 
+use Illuminate\View\View;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Card;
 use Livewire\Attributes\Lazy;
@@ -17,7 +18,7 @@ class DebtFilesCard extends Card
     /**
      * Render the hottest files card.
      */
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         [$files, $time, $runAt] = $this->remember(function (): mixed {
             $value = Pulse::values('debt_top_files', ['project'])->first();
@@ -26,9 +27,9 @@ class DebtFilesCard extends Card
         });
 
         return view('debt-tracker-pulse::debt-files-card', [
-            'files'  => $files ?? [],
-            'time'   => $time,
-            'runAt'  => $runAt,
+            'files' => $files ?? [],
+            'time' => $time,
+            'runAt' => $runAt,
         ]);
     }
 }
