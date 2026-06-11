@@ -19,11 +19,16 @@ class DebtAuthorsCard extends Card
      */
     public function render(): \Illuminate\View\View
     {
-        $value = Pulse::values('debt_top_authors', ['project'])->first();
-        $authors = $value ? json_decode($value->value, true) : [];
+        [$authors, $time, $runAt] = $this->remember(function (): mixed {
+            $value = Pulse::values('debt_top_authors', ['project'])->first();
+
+            return $value ? json_decode($value->value, true, 512, JSON_THROW_ON_ERROR) : [];
+        });
 
         return view('debt-tracker-pulse::debt-authors-card', [
             'authors' => $authors ?? [],
+            'time'    => $time,
+            'runAt'   => $runAt,
         ]);
     }
 }

@@ -19,11 +19,16 @@ class DebtFilesCard extends Card
      */
     public function render(): \Illuminate\View\View
     {
-        $value = Pulse::values('debt_top_files', ['project'])->first();
-        $files = $value ? json_decode($value->value, true) : [];
+        [$files, $time, $runAt] = $this->remember(function (): mixed {
+            $value = Pulse::values('debt_top_files', ['project'])->first();
+
+            return $value ? json_decode($value->value, true, 512, JSON_THROW_ON_ERROR) : [];
+        });
 
         return view('debt-tracker-pulse::debt-files-card', [
-            'files' => $files ?? [],
+            'files'  => $files ?? [],
+            'time'   => $time,
+            'runAt'  => $runAt,
         ]);
     }
 }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Pulse\Cards;
 
-use Carbon\CarbonInterval;
-use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\Livewire\Card;
 use Livewire\Attributes\Lazy;
 
@@ -20,10 +18,14 @@ class DebtScoreCard extends Card
      */
     public function render(): \Illuminate\View\View
     {
-        $scores = Pulse::graph(['debt_score'], 'max', CarbonInterval::days(14));
+        [$scores, $time, $runAt] = $this->remember(
+            fn (): mixed => $this->graph(['debt_score'], 'max')
+        );
 
         return view('debt-tracker-pulse::debt-score-card', [
             'scores' => $scores,
+            'time'   => $time,
+            'runAt'  => $runAt,
         ]);
     }
 }

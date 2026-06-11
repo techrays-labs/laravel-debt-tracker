@@ -19,11 +19,16 @@ class DebtSummaryCard extends Card
      */
     public function render(): \Illuminate\View\View
     {
-        $value = Pulse::values('debt_summary', ['project'])->first();
-        $summary = $value ? json_decode($value->value, true) : null;
+        [$summary, $time, $runAt] = $this->remember(function (): mixed {
+            $value = Pulse::values('debt_summary', ['project'])->first();
+
+            return $value ? json_decode($value->value, true, 512, JSON_THROW_ON_ERROR) : null;
+        });
 
         return view('debt-tracker-pulse::debt-summary-card', [
             'summary' => $summary,
+            'time'    => $time,
+            'runAt'   => $runAt,
         ]);
     }
 }
