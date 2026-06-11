@@ -34,23 +34,20 @@ it('summary command outputs grade line', function () {
         ->expectsOutputToContain('Techrays Debt Tracker');
 });
 
-it('pushes result to Pulse when pulse.enabled is true and Pulse is installed', function (): void {
-    if (! class_exists(\Laravel\Pulse\Pulse::class)) {
-        $this->markTestSkipped('laravel/pulse not installed');
-    }
+it('pushes result to Pulse when pulse.enabled is true', function (): void {
+    $mock = $this->mock(\TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor::class);
+    $mock->shouldReceive('push')->once();
 
     config(['debt-tracker.pulse.enabled' => true]);
 
     $this->artisan('debt:scan')->assertExitCode(0);
-
-    // Verify DebtPulseIngestor::push() was called — confirmed by no exception and exit 0
-    expect(true)->toBeTrue();
 });
 
 it('does not push to Pulse when pulse.enabled is false', function (): void {
+    $mock = $this->mock(\TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor::class);
+    $mock->shouldNotReceive('push');
+
     config(['debt-tracker.pulse.enabled' => false]);
 
     $this->artisan('debt:scan')->assertExitCode(0);
-
-    expect(true)->toBeTrue();
 });

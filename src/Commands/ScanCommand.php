@@ -31,7 +31,7 @@ class ScanCommand extends Command
 
     protected $description = 'Scan your Laravel application for technical debt';
 
-    public function handle(DebtTracker $tracker, MarkdownReporter $markdownReporter, JsonReporter $jsonReporter, DebtPulseIngestor $pulseIngestor): int
+    public function handle(DebtTracker $tracker, MarkdownReporter $markdownReporter, JsonReporter $jsonReporter): int
     {
         $only = $this->option('only')
             ? array_map('trim', explode(',', (string) $this->option('only')))
@@ -86,7 +86,11 @@ class ScanCommand extends Command
         outro("Scan complete · Grade: {$result->grade} · Score: {$result->totalScore} · {$result->totalItems()} items found");
 
         if (config('debt-tracker.pulse.enabled', true)) {
-            $pulseIngestor->push($result);
+            try {
+                app(DebtPulseIngestor::class)->push($result);
+            } catch (\Throwable $e) {
+                $this->components->warn("Pulse push failed: {$e->getMessage()}");
+            }
         }
 
         return self::SUCCESS;

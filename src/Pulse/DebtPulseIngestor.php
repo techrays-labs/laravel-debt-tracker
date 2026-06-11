@@ -16,7 +16,7 @@ use TechRaysLabs\DebtTracker\ValueObjects\ScanResult;
  * All writes are guarded by a container binding check so this class is safe to
  * instantiate even when laravel/pulse is not installed.
  */
-final class DebtPulseIngestor
+class DebtPulseIngestor
 {
     /**
      * Push a ScanResult into Pulse storage.
