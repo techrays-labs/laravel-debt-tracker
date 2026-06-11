@@ -27,11 +27,10 @@
     "phpstan/phpstan": "^2.0",
     "laravel/pint": "^1.0",
     "laravel/pulse": "^1.0",
-    "livewire/livewire": "^3.0"
+    "livewire/livewire": "^3.6"
   },
   "suggest": {
-    "laravel/pulse": "Required for Pulse dashboard cards (^1.0)",
-    "livewire/livewire": "Required for Pulse dashboard cards (^3.0)"
+    "laravel/pulse": "Install to enable the Laravel Pulse dashboard integration"
   },
   "autoload": {
     "psr-4": {
