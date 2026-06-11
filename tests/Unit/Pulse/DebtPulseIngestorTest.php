@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Pulse\PulseServiceProvider;
 use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
@@ -22,7 +23,29 @@ beforeEach(function (): void {
     $this->app->register(PulseServiceProvider::class);
 });
 
-function makeScanResult(int $score = 150, string $grade = 'B'): ScanResult
+/**
+ * Create a spy on the Pulse facade that stubs record() to return a real Entry
+ * instance so that the ->max() chain in DebtPulseIngestor resolves correctly.
+ *
+ * @return \Mockery\MockInterface
+ */
+function pulseSpyWithEntryStub(): \Mockery\MockInterface
+{
+    $spy = Pulse::spy();
+
+    // record() is typed to return Entry; return a real Entry so ->max() works.
+    $spy->shouldReceive('record')
+        ->andReturnUsing(fn (): Entry => new Entry(
+            timestamp: (int) now()->timestamp,
+            type: 'debt_score',
+            key: 'project',
+            value: 0,
+        ));
+
+    return $spy;
+}
+
+function makePulseScanResult(int $score = 150, string $grade = 'B'): ScanResult
 {
     $file = new FileDebtResult(
         filePath: '/project/app/Foo.php',
@@ -46,10 +69,10 @@ function makeScanResult(int $score = 150, string $grade = 'B'): ScanResult
 }
 
 it('records the debt score as a time-series entry', function (): void {
-    $spy = Pulse::spy();
+    $spy = pulseSpyWithEntryStub();
 
     $ingestor = new DebtPulseIngestor;
-    $ingestor->push(makeScanResult(score: 150));
+    $ingestor->push(makePulseScanResult(score: 150));
 
     $spy->shouldHaveReceived('record')
         ->once()
@@ -57,10 +80,10 @@ it('records the debt score as a time-series entry', function (): void {
 });
 
 it('sets the debt_summary snapshot with correct keys', function (): void {
-    $spy = Pulse::spy();
+    $spy = pulseSpyWithEntryStub();
 
     $ingestor = new DebtPulseIngestor;
-    $ingestor->push(makeScanResult(score: 150, grade: 'B'));
+    $ingestor->push(makePulseScanResult(score: 150, grade: 'B'));
 
     $spy->shouldHaveReceived('set')
         ->with(
@@ -79,10 +102,10 @@ it('sets the debt_summary snapshot with correct keys', function (): void {
 });
 
 it('sets the debt_top_files snapshot with max 10 entries', function (): void {
-    $spy = Pulse::spy();
+    $spy = pulseSpyWithEntryStub();
 
     $ingestor = new DebtPulseIngestor;
-    $ingestor->push(makeScanResult());
+    $ingestor->push(makePulseScanResult());
 
     $spy->shouldHaveReceived('set')
         ->with(
@@ -99,10 +122,10 @@ it('sets the debt_top_files snapshot with max 10 entries', function (): void {
 });
 
 it('sets the debt_top_authors snapshot', function (): void {
-    $spy = Pulse::spy();
+    $spy = pulseSpyWithEntryStub();
 
     $ingestor = new DebtPulseIngestor;
-    $ingestor->push(makeScanResult());
+    $ingestor->push(makePulseScanResult());
 
     $spy->shouldHaveReceived('set')
         ->with(
@@ -116,8 +139,16 @@ it('sets the debt_top_authors snapshot', function (): void {
         );
 });
 
-it('does nothing when Pulse facade is unavailable', function (): void {
-    // The push() method guards internally — just assert no exception thrown.
+it('does nothing when Pulse is not bound in the container', function (): void {
+    // Temporarily unbind the Pulse class to simulate a missing Pulse installation.
+    // The guard checks app()->bound(\Laravel\Pulse\Pulse::class), so removing the
+    // binding makes push() return early without any Pulse calls.
+    $this->app->forgetInstance(\Laravel\Pulse\Pulse::class);
+    $this->app->offsetUnset(\Laravel\Pulse\Pulse::class);
+
     $ingestor = new DebtPulseIngestor;
-    expect(fn () => $ingestor->push(makeScanResult()))->not->toThrow(\Throwable::class);
+    expect(fn () => $ingestor->push(makePulseScanResult()))->not->toThrow(\Throwable::class);
+
+    // Re-register so other tests in the suite are unaffected.
+    $this->app->register(PulseServiceProvider::class);
 });
