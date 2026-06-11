@@ -54,5 +54,13 @@ class DebtPulseIngestor
 
         // Snapshot: top 10 authors by total debt score.
         Pulse::set('debt_top_authors', 'project', json_encode($result->topAuthors(10), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+
+        // Pulse buffers writes in memory and ingests via an HTTP terminating hook.
+        // For console commands (debt:scan) that hook may not fire, so we call
+        // ingest() explicitly to guarantee data reaches the database synchronously.
+        $pulse = app(\Laravel\Pulse\Pulse::class);
+        if (app()->runningInConsole() && method_exists($pulse, 'ingest')) {
+            $pulse->ingest();
+        }
     }
 }
