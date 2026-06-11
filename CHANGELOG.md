@@ -3,7 +3,7 @@
 ## [1.3.0] - 2026-06-11
 
 ### Added
-- **Laravel Pulse integration** — built-in, zero extra package required. Activates automatically when `laravel/pulse` and `livewire/livewire` are installed in the host app
+- **Laravel Pulse integration** — built-in, zero extra package required. Activates automatically when `laravel/pulse ^1.0` and `livewire/livewire ^3.0` are installed in the host app. Tested with Pulse v1.0–v1.7
 - **Four Pulse dashboard cards:**
   - `debt-tracker-summary-card` — current grade (A–F), total score, estimated hours, and category breakdown
   - `debt-tracker-score-card` — debt score trend chart — see when PRs made things worse
@@ -13,6 +13,9 @@
 - New `pulse.enabled` config key — set to `false` to disable Pulse push without uninstalling Pulse
 - `laravel/pulse ^1.0` and `livewire/livewire ^3.0` added to `suggest` in `composer.json`
 - Pulse card views are publishable: `php artisan vendor:publish --tag=debt-tracker-pulse-views`
+
+### Fixed
+- `DebtPulseIngestor` now explicitly calls `Pulse::ingest()` after writing entries when running in a console context. Pulse normally flushes its in-memory buffer via an HTTP terminating hook — without the explicit `ingest()` call, data written by `debt:scan` would be lost. The call is guarded by `method_exists()` for forward compatibility
 
 ## [1.2.4] - 2026-06-09
 

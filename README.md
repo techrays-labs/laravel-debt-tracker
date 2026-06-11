@@ -255,6 +255,12 @@ return [
 
 Laravel Debt Tracker ships with four built-in Pulse dashboard cards. No extra package needed — the cards activate automatically when `laravel/pulse` and `livewire/livewire` are present in your app.
 
+> **Requirements**
+> - `laravel/pulse ^1.0` — tested with v1.0 through v1.7
+> - `livewire/livewire ^3.0` — pulled in automatically as a dependency of Pulse
+>
+> Neither package is a hard dependency of `laravel-debt-tracker`. Install them in your app and the integration activates on its own.
+
 | Card | Component tag | What it shows |
 |---|---|---|
 | **Debt Summary** | `<livewire:debt-tracker-summary-card>` | Current grade (A–F), total score, estimated hours, category breakdown |
