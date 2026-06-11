@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0] - 2026-06-11
+
+### Added
+- **Laravel Pulse integration** — built-in, zero extra package required. Activates automatically when `laravel/pulse` and `livewire/livewire` are installed in the host app
+- **Four Pulse dashboard cards:**
+  - `debt-tracker-summary-card` — current grade (A–F), total score, estimated hours, and category breakdown
+  - `debt-tracker-score-card` — debt score trend chart — see when PRs made things worse
+  - `debt-tracker-files-card` — top 10 files by debt score, updated every scan
+  - `debt-tracker-authors-card` — top 10 authors by total debt score via git blame
+- `debt:scan` now pushes results to Pulse automatically after every run (gated by `pulse.enabled` config key, default `true`)
+- New `pulse.enabled` config key — set to `false` to disable Pulse push without uninstalling Pulse
+- `laravel/pulse ^1.0` and `livewire/livewire ^3.0` added to `suggest` in `composer.json`
+- Pulse card views are publishable: `php artisan vendor:publish --tag=debt-tracker-pulse-views`
+
 ## [1.2.4] - 2026-06-09
 
 ### Fixed
