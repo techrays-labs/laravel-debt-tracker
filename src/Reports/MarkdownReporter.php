@@ -104,13 +104,13 @@ class MarkdownReporter
         ];
 
         $labels = [
-            'todo'       => 'TODOs / FIXMEs',
+            'todo' => 'TODOs / FIXMEs',
             'complexity' => 'Complexity',
-            'coverage'   => 'Missing Test Coverage',
+            'coverage' => 'Missing Test Coverage',
             'dependency' => 'Outdated Dependencies',
             'n1_queries' => 'N+1 Query Patterns',
-            'security'   => 'Security Smells',
-            'dead_code'  => 'Dead Code',
+            'security' => 'Security Smells',
+            'dead_code' => 'Dead Code',
         ];
 
         foreach ($result->byCategory as $type => $score) {

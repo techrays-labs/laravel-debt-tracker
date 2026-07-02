@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Detectors;
 
+use PhpParser\Node;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Foreach_;
 use PhpParser\NodeFinder;
 use TechRaysLabs\DebtTracker\Detectors\Contracts\DetectorInterface;
@@ -58,7 +60,7 @@ class N1QueryDetector implements DetectorInterface
             return [];
         }
 
-        /** @var array<\PhpParser\Node\Stmt>|null $ast */
+        /** @var array<Stmt>|null $ast */
         $ast = $context['ast'] ?? null;
 
         if ($ast === null) {
@@ -78,7 +80,10 @@ class N1QueryDetector implements DetectorInterface
         return $items;
     }
 
-    /** @return DebtItem[] */
+    /**
+     * @param  array<int, Node>  $ast
+     * @return DebtItem[]
+     */
     private function detectInForeachLoops(
         array $ast,
         string $filePath,
@@ -116,7 +121,10 @@ class N1QueryDetector implements DetectorInterface
         return $items;
     }
 
-    /** @return DebtItem[] */
+    /**
+     * @param  array<int, Node>  $ast
+     * @return DebtItem[]
+     */
     private function detectInCollectionIterators(
         array $ast,
         string $filePath,
@@ -175,7 +183,7 @@ class N1QueryDetector implements DetectorInterface
     /**
      * Scans statements for N+1 patterns on the given loop variable.
      *
-     * @param  array<\PhpParser\Node>  $stmts
+     * @param  array<Node>  $stmts
      * @return DebtItem[]
      */
     private function scanStmtsForN1(
@@ -272,7 +280,7 @@ class N1QueryDetector implements DetectorInterface
      * Suppresses flagging when eager loading is detected nearby.
      * Comment lines (starting with * or //) are excluded from the check.
      *
-     * @param  array<\PhpParser\Node>  $stmts
+     * @param  array<Node>  $stmts
      */
     private function hasEagerLoad(array $stmts, int $loopStartLine, ?string $source): bool
     {

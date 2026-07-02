@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use TechRaysLabs\DebtTracker\Detectors\SecuritySmellDetector;
 
-$fixture = __DIR__ . '/../../Fixtures/SecuritySmellFixture.php';
+$fixture = __DIR__.'/../../Fixtures/SecuritySmellFixture.php';
 
 it('detects eval() as dangerous function call', function () use ($fixture) {
     // excludePaths: [] so the tests/ directory is NOT excluded
@@ -69,7 +69,7 @@ it('detects all 6 smell types in the fixture', function () use ($fixture) {
 });
 
 it('returns empty array for a clean file', function () {
-    $cleanFixture = __DIR__ . '/../../Fixtures/CleanFile.php';
+    $cleanFixture = __DIR__.'/../../Fixtures/CleanFile.php';
     $detector = new SecuritySmellDetector(excludePaths: []);
     $items = $detector->detect($cleanFixture);
 

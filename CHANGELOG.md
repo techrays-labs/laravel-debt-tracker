@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.3.0] - 2026-06-11
+
+### Added
+- **Laravel Pulse integration** — built-in, zero extra package required. Activates automatically when `laravel/pulse ^1.0` and `livewire/livewire ^3.0` are installed in the host app. Tested with Pulse v1.0–v1.7
+- **Four Pulse dashboard cards:**
+  - `debt-tracker-summary-card` — current grade (A–F), total score, estimated hours, and category breakdown
+  - `debt-tracker-score-card` — debt score trend chart — see when PRs made things worse
+  - `debt-tracker-files-card` — top 10 files by debt score, updated every scan
+  - `debt-tracker-authors-card` — top 10 authors by total debt score via git blame
+- `debt:scan` now pushes results to Pulse automatically after every run (gated by `pulse.enabled` config key, default `true`)
+- New `pulse.enabled` config key — set to `false` to disable Pulse push without uninstalling Pulse
+- `laravel/pulse ^1.0` and `livewire/livewire ^3.0` added to `suggest` in `composer.json`
+- Pulse card views are publishable: `php artisan vendor:publish --tag=debt-tracker-pulse-views`
+
+### Fixed
+- `DebtPulseIngestor` now explicitly calls `Pulse::ingest()` after writing entries when running in a console context. Pulse normally flushes its in-memory buffer via an HTTP terminating hook — without the explicit `ingest()` call, data written by `debt:scan` would be lost. The call is guarded by `method_exists()` for forward compatibility
+
+### Known Issues
+- **MySQL 9 not supported for Pulse integration** — Pulse 1.7.x omits `key_hash` from `pulse_entries` INSERTs on MySQL 9, causing a strict-mode constraint failure (`Field 'key_hash' doesn't have a default value`). This is a bug in Pulse's `DatabaseStorage::requiresManualKeyHash()` which only enables manual hashing for SQLite, not MySQL 9. Use MySQL 8 or MariaDB until an upstream fix is available
+
 ## [1.2.4] - 2026-06-09
 
 ### Fixed

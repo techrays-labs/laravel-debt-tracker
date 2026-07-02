@@ -25,7 +25,12 @@
     "mockery/mockery": "^1.6",
     "larastan/larastan": "^3.0",
     "phpstan/phpstan": "^2.0",
-    "laravel/pint": "^1.0"
+    "laravel/pint": "^1.0",
+    "laravel/pulse": "^1.0",
+    "livewire/livewire": "^3.6"
+  },
+  "suggest": {
+    "laravel/pulse": "Install to enable the Laravel Pulse dashboard integration (^1.0, tested with v1.0–v1.7)"
   },
   "autoload": {
     "psr-4": {

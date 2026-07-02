@@ -7,6 +7,7 @@ namespace TechRaysLabs\DebtTracker\Commands;
 use Illuminate\Console\Command;
 use Laravel\Prompts\Progress;
 use TechRaysLabs\DebtTracker\DebtTracker;
+use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
 use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
 use TechRaysLabs\DebtTracker\Reports\TerminalReporter;
@@ -42,7 +43,7 @@ class ScanCommand extends Command
 
         intro('Laravel Debt Tracker · by Techrays Labs');
 
-        /** @var Progress|null $bar */
+        /** @var Progress<int>|null $bar */
         $bar = null;
 
         $result = $tracker->scan(
@@ -83,6 +84,14 @@ class ScanCommand extends Command
         }
 
         outro("Scan complete · Grade: {$result->grade} · Score: {$result->totalScore} · {$result->totalItems()} items found");
+
+        if (config('debt-tracker.pulse.enabled', true)) {
+            try {
+                app(DebtPulseIngestor::class)->push($result);
+            } catch (\Throwable $e) {
+                $this->components->warn("Pulse push failed: {$e->getMessage()}");
+            }
+        }
 
         return self::SUCCESS;
     }

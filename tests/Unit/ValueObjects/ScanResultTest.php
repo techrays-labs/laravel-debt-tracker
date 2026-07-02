@@ -13,7 +13,7 @@ function makeScanResultWithAuthors(array $byAuthor = []): ScanResult
         grade: 'A',
         estimatedHours: 0.0,
         byCategory: [],
-        generatedAt: new \DateTimeImmutable('2026-01-01'),
+        generatedAt: new DateTimeImmutable('2026-01-01'),
         projectPath: '/tmp',
         byAuthor: $byAuthor,
     );
@@ -22,8 +22,8 @@ function makeScanResultWithAuthors(array $byAuthor = []): ScanResult
 it('topAuthors returns entries sorted by score descending', function () {
     $result = makeScanResultWithAuthors([
         'Jane Smith' => 87,
-        'John Doe'   => 142,
-        'Unknown'    => 12,
+        'John Doe' => 142,
+        'Unknown' => 12,
     ]);
 
     $top = $result->topAuthors();

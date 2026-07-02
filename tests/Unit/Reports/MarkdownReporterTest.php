@@ -105,19 +105,19 @@ it('uses details blocks for full breakdown', function () {
 });
 
 it('includes Debt by Author section when known authors exist', function () {
-    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+    $result = new ScanResult(
         fileResults: [],
         classResults: [],
         totalScore: 0,
         grade: 'A',
         estimatedHours: 0,
         byCategory: [],
-        generatedAt: new \DateTimeImmutable,
+        generatedAt: new DateTimeImmutable,
         projectPath: '/tmp',
         byAuthor: ['John Doe' => 142, 'Jane Smith' => 87],
     );
 
-    $reporter = new \TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
+    $reporter = new MarkdownReporter;
     $output = $reporter->generate($result);
 
     expect($output)->toContain('## Debt by Author');
@@ -126,19 +126,19 @@ it('includes Debt by Author section when known authors exist', function () {
 });
 
 it('omits Debt by Author section when only Unknown authors', function () {
-    $result = new \TechRaysLabs\DebtTracker\ValueObjects\ScanResult(
+    $result = new ScanResult(
         fileResults: [],
         classResults: [],
         totalScore: 0,
         grade: 'A',
         estimatedHours: 0,
         byCategory: [],
-        generatedAt: new \DateTimeImmutable,
+        generatedAt: new DateTimeImmutable,
         projectPath: '/tmp',
         byAuthor: ['Unknown' => 50],
     );
 
-    $reporter = new \TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
+    $reporter = new MarkdownReporter;
     $output = $reporter->generate($result);
 
     expect($output)->not->toContain('## Debt by Author');

@@ -6,6 +6,8 @@ namespace TechRaysLabs\DebtTracker\Reports;
 
 use Symfony\Component\Console\Output\OutputInterface;
 use TechRaysLabs\DebtTracker\Scoring\GradeResolver;
+use TechRaysLabs\DebtTracker\ValueObjects\ClassDebtResult;
+use TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult;
 use TechRaysLabs\DebtTracker\ValueObjects\ScanResult;
 
 /**
@@ -35,16 +37,6 @@ class TerminalReporter
         $this->output->writeln('');
     }
 
-    private function renderHeader(): void
-    {
-        $this->output->writeln('');
-        $this->output->writeln('  <fg=cyan>╔══════════════════════════════════════════════════════════╗</>');
-        $this->output->writeln('  <fg=cyan>║        Laravel Debt Tracker · by Techrays Labs           ║</>');
-        $this->output->writeln('  <fg=cyan>║  https://github.com/techrays-labs/laravel-debt-tracker   ║</>');
-        $this->output->writeln('  <fg=cyan>╚══════════════════════════════════════════════════════════╝</>');
-        $this->output->writeln('');
-    }
-
     private function renderSummary(ScanResult $result): void
     {
         $color = $this->gradeColor($result->grade);
@@ -66,13 +58,13 @@ class TerminalReporter
     private function renderCategoryTable(array $byCategory): void
     {
         $labels = [
-            'todo'       => 'TODOs / FIXMEs',
+            'todo' => 'TODOs / FIXMEs',
             'complexity' => 'Complexity',
-            'coverage'   => 'Missing Test Coverage',
+            'coverage' => 'Missing Test Coverage',
             'dependency' => 'Outdated Dependencies',
             'n1_queries' => 'N+1 Queries',
-            'security'   => 'Security Smells',
-            'dead_code'  => 'Dead Code',
+            'security' => 'Security Smells',
+            'dead_code' => 'Dead Code',
         ];
 
         // Merge known categories (with 0 defaults) over actual results so all
@@ -97,7 +89,7 @@ class TerminalReporter
         $this->output->writeln('');
     }
 
-    /** @param \TechRaysLabs\DebtTracker\ValueObjects\FileDebtResult[] $files */
+    /** @param FileDebtResult[] $files */
     private function renderFilesTable(array $files): void
     {
         if (empty($files)) {
@@ -126,7 +118,7 @@ class TerminalReporter
         $this->output->writeln('');
     }
 
-    /** @param \TechRaysLabs\DebtTracker\ValueObjects\ClassDebtResult[] $classes */
+    /** @param ClassDebtResult[] $classes */
     private function renderClassesTable(array $classes): void
     {
         if (empty($classes)) {

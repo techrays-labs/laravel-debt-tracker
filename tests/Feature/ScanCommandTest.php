@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
 use TechRaysLabs\DebtTracker\Tests\TestCase;
 
 uses(TestCase::class);
@@ -32,4 +33,22 @@ it('exports markdown file when --export=markdown', function () {
 it('summary command outputs grade line', function () {
     $this->artisan('debt:summary')
         ->expectsOutputToContain('Techrays Debt Tracker');
+});
+
+it('pushes result to Pulse when pulse.enabled is true', function (): void {
+    $mock = $this->mock(DebtPulseIngestor::class);
+    $mock->shouldReceive('push')->once();
+
+    config(['debt-tracker.pulse.enabled' => true]);
+
+    $this->artisan('debt:scan')->assertExitCode(0);
+});
+
+it('does not push to Pulse when pulse.enabled is false', function (): void {
+    $mock = $this->mock(DebtPulseIngestor::class);
+    $mock->shouldNotReceive('push');
+
+    config(['debt-tracker.pulse.enabled' => false]);
+
+    $this->artisan('debt:scan')->assertExitCode(0);
 });

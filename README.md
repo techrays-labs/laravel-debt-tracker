@@ -21,6 +21,10 @@
   &nbsp;
   <img src="https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Version">
   &nbsp;
+  <a href="https://laravel.com/docs/pulse">
+    <img src="https://img.shields.io/badge/Pulse-Cards%20Included-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Pulse Cards Included">
+  </a>
+  &nbsp;
   <a href="https://github.com/techrays-labs/laravel-debt-tracker/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="License">
   </a>
@@ -49,6 +53,7 @@
 - **Dependency audit** — flags outdated or abandoned Composer packages
 - **Git blame enrichment** — older debt scores higher; age is the multiplier
 - **Git author leaderboard** — surfaces who owns the most debt across terminal, Markdown, and JSON reports
+- **Laravel Pulse cards** — grade summary, score trend, hottest files, and author leaderboard visible in your Pulse dashboard with zero extra packages
 - **Debt grading** — A through F, with estimated dev hours to resolve
 - **Markdown & JSON export** — shareable reports with a shield badge for your README
 
@@ -242,6 +247,73 @@ return [
         'json_path' => base_path('DEBT_REPORT.json'),
     ],
 ];
+```
+
+---
+
+## Laravel Pulse Integration
+
+Laravel Debt Tracker ships with four built-in Pulse dashboard cards. No extra package needed — the cards activate automatically when `laravel/pulse` and `livewire/livewire` are present in your app.
+
+> **Requirements**
+> - `laravel/pulse ^1.0` — tested with v1.0 through v1.7
+> - `livewire/livewire ^3.0` — pulled in automatically as a dependency of Pulse
+> - **MySQL 8 or MariaDB** — MySQL 9 is not currently supported due to a bug in Pulse's `DatabaseStorage` where `key_hash` is omitted from INSERTs on MySQL 9, causing a strict-mode constraint failure. Track progress at [laravel/pulse#399](https://github.com/laravel/pulse/issues/399) (or check the Pulse changelog for a fix).
+>
+> Neither package is a hard dependency of `laravel-debt-tracker`. Install them in your app and the integration activates on its own.
+
+| Card | Component tag | What it shows |
+|---|---|---|
+| **Debt Summary** | `<livewire:debt-tracker-summary-card>` | Current grade (A–F), total score, estimated hours, category breakdown |
+| **Score Over Time** | `<livewire:debt-tracker-score-card>` | Debt score trend chart — see when PRs made things worse |
+| **Hottest Files** | `<livewire:debt-tracker-files-card>` | Top 10 files by debt score, updated every scan |
+| **Top Debt Authors** | `<livewire:debt-tracker-authors-card>` | Top 10 authors by total debt score via git blame |
+
+### Setup
+
+**1. Publish the card views** (optional — only needed to customise them):
+
+```bash
+php artisan vendor:publish --tag=debt-tracker-pulse-views
+```
+
+**2. Add the cards to your Pulse dashboard** in `resources/views/vendor/pulse/dashboard.blade.php`:
+
+```blade
+<livewire:debt-tracker-summary-card cols="2" />
+<livewire:debt-tracker-score-card cols="4" />
+<livewire:debt-tracker-files-card cols="3" />
+<livewire:debt-tracker-authors-card cols="3" />
+```
+
+> The `cols` values above fill a standard 12-column Pulse grid row. Adjust to your layout.
+
+**3. Populate the cards** — run a scan:
+
+```bash
+php artisan debt:scan
+```
+
+Cards update automatically every time `debt:scan` runs.
+
+### Scheduled scans
+
+To keep your dashboard up to date automatically, schedule `debt:scan` in `routes/console.php`:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('debt:scan')->daily();
+```
+
+### Disabling Pulse push
+
+To run ad-hoc scans without updating the dashboard, set in `config/debt-tracker.php`:
+
+```php
+'pulse' => [
+    'enabled' => false,
+],
 ```
 
 ---
