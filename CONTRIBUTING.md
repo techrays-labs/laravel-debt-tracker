@@ -89,4 +89,4 @@ Types: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`
 
 ## Questions
 
-Open a [GitHub Discussion](https://github.com/techrays-labs/laravel-debt-tracker/discussions) or email us at chirag@techrayslabs.com.
+Open a [GitHub Discussion](https://github.com/techrays-labs/laravel-debt-tracker/discussions) or email us at opensource@techrayslabs.com.

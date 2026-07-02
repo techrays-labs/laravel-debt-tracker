@@ -15,7 +15,7 @@
 
 If you discover a security vulnerability in Laravel Debt Tracker, email us directly at:
 
-**chirag@techrayslabs.com**
+**opensource@techrayslabs.com**
 
 Please include:
 
