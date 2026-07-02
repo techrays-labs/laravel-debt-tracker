@@ -17,6 +17,9 @@
 ### Fixed
 - `DebtPulseIngestor` now explicitly calls `Pulse::ingest()` after writing entries when running in a console context. Pulse normally flushes its in-memory buffer via an HTTP terminating hook — without the explicit `ingest()` call, data written by `debt:scan` would be lost. The call is guarded by `method_exists()` for forward compatibility
 
+### Known Issues
+- **MySQL 9 not supported for Pulse integration** — Pulse 1.7.x omits `key_hash` from `pulse_entries` INSERTs on MySQL 9, causing a strict-mode constraint failure (`Field 'key_hash' doesn't have a default value`). This is a bug in Pulse's `DatabaseStorage::requiresManualKeyHash()` which only enables manual hashing for SQLite, not MySQL 9. Use MySQL 8 or MariaDB until an upstream fix is available
+
 ## [1.2.4] - 2026-06-09
 
 ### Fixed

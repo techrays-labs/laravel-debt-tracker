@@ -258,6 +258,7 @@ Laravel Debt Tracker ships with four built-in Pulse dashboard cards. No extra pa
 > **Requirements**
 > - `laravel/pulse ^1.0` — tested with v1.0 through v1.7
 > - `livewire/livewire ^3.0` — pulled in automatically as a dependency of Pulse
+> - **MySQL 8 or MariaDB** — MySQL 9 is not currently supported due to a bug in Pulse's `DatabaseStorage` where `key_hash` is omitted from INSERTs on MySQL 9, causing a strict-mode constraint failure. Track progress at [laravel/pulse#399](https://github.com/laravel/pulse/issues/399) (or check the Pulse changelog for a fix).
 >
 > Neither package is a hard dependency of `laravel-debt-tracker`. Install them in your app and the integration activates on its own.
 
