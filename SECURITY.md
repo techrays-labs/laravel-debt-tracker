@@ -4,9 +4,10 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.2.x   | ✅ Active  |
-| 1.1.x   | ✅ Security fixes only |
-| < 1.1   | ❌ No longer supported |
+| 1.3.x   | ✅ Active — current release |
+| < 1.3   | ❌ No longer supported |
+
+> **Note:** As of v1.3.0, all versions prior to 1.3 have reached end of life. No bug fixes, security patches, or updates will be issued for 1.0.x, 1.1.x, or 1.2.x. Please upgrade to v1.3.
 
 ## Reporting a Vulnerability
 

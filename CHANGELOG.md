@@ -1,5 +1,7 @@
 # Changelog
 
+> **Support policy:** Only `v1.3.x` is actively maintained. All prior versions (1.0, 1.1, 1.2) are end of life — no further bug fixes or security patches will be issued for them.
+
 ## [1.3.0] - 2026-06-11
 
 ### Added

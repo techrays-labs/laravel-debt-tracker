@@ -68,6 +68,10 @@
 
 ---
 
+> **Support policy:** Only the current release (`v1.3.x`) receives bug fixes, security patches, and updates. All versions below v1.3 have reached end of life. If you are on v1.0, v1.1, or v1.2 please upgrade — see [CHANGELOG.md](CHANGELOG.md) for what changed.
+
+---
+
 ## Installation
 
 ```bash
