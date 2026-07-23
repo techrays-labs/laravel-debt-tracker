@@ -63,3 +63,17 @@ it('returns correct color for grade D', function () {
 it('returns correct color for grade F', function () {
     expect((new GradeResolver)->color('F'))->toBe('red');
 });
+
+it('ranks grades in ascending severity', function () {
+    $resolver = new GradeResolver;
+
+    expect($resolver->rank('A'))->toBe(1)
+        ->and($resolver->rank('B'))->toBe(2)
+        ->and($resolver->rank('C'))->toBe(3)
+        ->and($resolver->rank('D'))->toBe(4)
+        ->and($resolver->rank('F'))->toBe(5);
+});
+
+it('throws on an unknown grade in rank', function () {
+    (new GradeResolver)->rank('Z');
+})->throws(InvalidArgumentException::class);

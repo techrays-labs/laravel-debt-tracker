@@ -32,6 +32,25 @@ class GradeResolver
     }
 
     /**
+     * Returns a severity rank for the grade where a worse grade yields a
+     * higher number (A = 1 … F = 5). Enables "grade is threshold-or-worse"
+     * comparisons via rank(actual) >= rank(threshold).
+     *
+     * @throws \InvalidArgumentException when the grade letter is unknown
+     */
+    public function rank(string $grade): int
+    {
+        return match ($grade) {
+            'A' => 1,
+            'B' => 2,
+            'C' => 3,
+            'D' => 4,
+            'F' => 5,
+            default => throw new \InvalidArgumentException("Unknown grade: {$grade}"),
+        };
+    }
+
+    /**
      * Returns the Symfony Console colour tag name for a grade.
      */
     public function color(string $grade): string
