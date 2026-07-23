@@ -159,6 +159,44 @@ php artisan debt:summary
 # Exit code: 1 (C), 0 (A/B), 2 (D/F) — gate your pipeline on debt grade
 ```
 
+## CI Debt Gate
+
+Block a pull request when technical debt crosses a line you set. Both `debt:scan`
+and `debt:summary` accept two opt-in flags:
+
+| Flag | Fails (exit 1) when |
+|------|---------------------|
+| `--fail-on-grade=C` | the grade is `C` or worse (`C`, `D`, `F`) |
+| `--max-score=500` | the total debt score is greater than `500` |
+
+If both are set, the gate fails when **either** threshold is breached.
+
+**Exit codes:** `0` = passed (or gate not configured), `1` = a threshold was
+breached, `2` = invalid flag value (bad grade letter or non-numeric score).
+
+### Set the policy once in config
+
+Instead of repeating flags in every workflow, set defaults in
+`config/debt-tracker.php` — a CLI flag always overrides the config value:
+
+```php
+'ci' => [
+    'fail_on_grade' => 'C',
+    'max_score'     => 500,
+],
+```
+
+### GitHub Actions
+
+```yaml
+- name: Technical debt gate
+  run: php artisan debt:scan --fail-on-grade=C
+```
+
+> **Note on `debt:summary`:** without any gate flag or `ci` config, `debt:summary`
+> keeps its historical exit codes (`0` for A/B, `1` for C, `2` for D/F). Passing a
+> gate flag (or setting the `ci` config) switches it to the gate's `0`/`1` scheme.
+
 ### Scan a specific path
 
 ```bash

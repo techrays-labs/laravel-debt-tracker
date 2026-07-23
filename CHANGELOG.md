@@ -2,6 +2,23 @@
 
 > **Support policy:** Only `v1.3.x` is actively maintained. All prior versions (1.0, 1.1, 1.2) are end of life — no further bug fixes or security patches will be issued for them.
 
+## [1.3.1] - 2026-07-02
+
+### Added
+- **CI Debt Gate** — block merges when technical debt breaches an absolute policy.
+  - New `--fail-on-grade=<A-F>` flag on `debt:scan` and `debt:summary` — exits `1` when the grade is that letter or worse.
+  - New `--max-score=<int>` flag on `debt:scan` and `debt:summary` — exits `1` when the total debt score exceeds the value. If both flags are set, the gate fails when either is breached.
+  - Invalid flag input (unknown grade letter or non-numeric score) exits `2`.
+  - New `ci` config block (`fail_on_grade`, `max_score`, both `null` by default) sets the policy once; CLI flags override the config.
+  - New `TechRaysLabs\DebtTracker\Gating\DebtGate` evaluator, `GateResult` value object, and `ResolvesGateOptions` command trait.
+  - `GradeResolver::rank()` exposes grade severity ordering (A=1 … F=5).
+
+### Changed
+- `debt:scan` now returns exit code `1` when a configured gate threshold is breached (previously always `0`). With no gate configured, it still returns `0`.
+
+### Notes
+- `debt:summary` default exit codes are **unchanged** (`0` = A/B, `1` = C, `2` = D/F) unless a gate flag or `ci` config is provided, in which case the gate's `0`/`1` scheme applies.
+
 ## [1.3.0] - 2026-06-11
 
 ### Added
