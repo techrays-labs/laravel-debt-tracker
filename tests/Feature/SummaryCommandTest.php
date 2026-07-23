@@ -32,3 +32,17 @@ it('rejects an invalid summary fail-on-grade value with exit code 2', function (
     $this->artisan('debt:summary --fail-on-grade=Z')
         ->assertExitCode(2);
 });
+
+it('rejects a non-numeric summary max-score with exit code 2', function () {
+    $this->artisan('debt:summary --max-score=abc')
+        ->assertExitCode(2);
+});
+
+it('activates the summary gate from config defaults', function () {
+    // Config alone (no CLI flags) must activate the gate and override the
+    // legacy grade-based exit-code scheme. --fail-on-grade=A fails for any grade.
+    config(['debt-tracker.ci.fail_on_grade' => 'A']);
+
+    $this->artisan('debt:summary')
+        ->assertExitCode(1);
+});

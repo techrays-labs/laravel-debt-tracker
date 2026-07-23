@@ -16,8 +16,10 @@ class DebtGate
     public function __construct(private readonly GradeResolver $grades) {}
 
     /**
+     * @param  ScanResult  $result  The scan result to evaluate against the gate thresholds
      * @param  string|null  $failOnGrade  Fail when the grade is this letter or worse (A–F); null disables
      * @param  int|null  $maxScore  Fail when the total score exceeds this value; null disables
+     * @return GateResult The outcome of evaluating the gate
      */
     public function evaluate(ScanResult $result, ?string $failOnGrade, ?int $maxScore): GateResult
     {

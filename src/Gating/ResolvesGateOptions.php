@@ -31,6 +31,9 @@ trait ResolvesGateOptions
         return [$this->resolveFailOnGrade(), $this->resolveMaxScore()];
     }
 
+    /**
+     * Resolve the effective --fail-on-grade value from the CLI flag or config default.
+     */
     private function resolveFailOnGrade(): ?string
     {
         $raw = $this->option('fail-on-grade') ?? config('debt-tracker.ci.fail_on_grade');
@@ -50,6 +53,9 @@ trait ResolvesGateOptions
         return $grade;
     }
 
+    /**
+     * Resolve the effective --max-score value from the CLI flag or config default.
+     */
     private function resolveMaxScore(): ?int
     {
         $raw = $this->option('max-score') ?? config('debt-tracker.ci.max_score');
