@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechRaysLabs\DebtTracker\Gating;
 
+use Illuminate\Console\Command;
 use InvalidArgumentException;
 
 /**
@@ -12,7 +13,7 @@ use InvalidArgumentException;
  * Resolves the effective thresholds using precedence: CLI flag → config default
  * → off (null). Validates flag input and normalizes the grade letter.
  *
- * @mixin \Illuminate\Console\Command
+ * @mixin Command
  */
 trait ResolvesGateOptions
 {
@@ -23,7 +24,7 @@ trait ResolvesGateOptions
      *
      * @return array{0: string|null, 1: int|null}
      *
-     * @throws \InvalidArgumentException when a provided flag value is invalid
+     * @throws InvalidArgumentException when a provided flag value is invalid
      */
     protected function resolveGateThresholds(): array
     {
