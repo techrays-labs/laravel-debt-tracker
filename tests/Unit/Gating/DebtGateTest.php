@@ -11,7 +11,7 @@ function makeGate(): DebtGate
     return new DebtGate(new GradeResolver);
 }
 
-function makeScanResult(string $grade, int $score): ScanResult
+function makeGateScanResult(string $grade, int $score): ScanResult
 {
     return new ScanResult(
         fileResults: [],
@@ -26,7 +26,7 @@ function makeScanResult(string $grade, int $score): ScanResult
 }
 
 it('fails when the grade is at or below the threshold', function () {
-    $result = makeGate()->evaluate(makeScanResult('C', 400), 'C', null);
+    $result = makeGate()->evaluate(makeGateScanResult('C', 400), 'C', null);
 
     expect($result->active)->toBeTrue()
         ->and($result->passed)->toBeFalse()
@@ -34,31 +34,31 @@ it('fails when the grade is at or below the threshold', function () {
 });
 
 it('passes when the grade is better than the threshold', function () {
-    $result = makeGate()->evaluate(makeScanResult('A', 50), 'C', null);
+    $result = makeGate()->evaluate(makeGateScanResult('A', 50), 'C', null);
 
     expect($result->active)->toBeTrue()
         ->and($result->passed)->toBeTrue();
 });
 
 it('fails when the score exceeds the max', function () {
-    expect(makeGate()->evaluate(makeScanResult('A', 501), null, 500)->passed)->toBeFalse();
+    expect(makeGate()->evaluate(makeGateScanResult('A', 501), null, 500)->passed)->toBeFalse();
 });
 
 it('passes when the score equals the max', function () {
-    expect(makeGate()->evaluate(makeScanResult('A', 500), null, 500)->passed)->toBeTrue();
+    expect(makeGate()->evaluate(makeGateScanResult('A', 500), null, 500)->passed)->toBeTrue();
 });
 
 it('fails when either of two thresholds is breached', function () {
     // grade B passes the C floor, but score 700 breaches max 500
-    expect(makeGate()->evaluate(makeScanResult('B', 700), 'C', 500)->passed)->toBeFalse();
+    expect(makeGate()->evaluate(makeGateScanResult('B', 700), 'C', 500)->passed)->toBeFalse();
 });
 
 it('passes when both thresholds are set and neither is breached', function () {
-    expect(makeGate()->evaluate(makeScanResult('B', 200), 'C', 500)->passed)->toBeTrue();
+    expect(makeGate()->evaluate(makeGateScanResult('B', 200), 'C', 500)->passed)->toBeTrue();
 });
 
 it('is inactive when no thresholds are provided', function () {
-    $result = makeGate()->evaluate(makeScanResult('F', 5000), null, null);
+    $result = makeGate()->evaluate(makeGateScanResult('F', 5000), null, null);
 
     expect($result->active)->toBeFalse()
         ->and($result->passed)->toBeTrue()
