@@ -40,4 +40,13 @@ return [
     'pulse' => [
         'enabled' => true,
     ],
+    'ci' => [
+        // Fail the debt:scan / debt:summary commands (exit 1) when the grade is
+        // this letter or worse: A, B, C, D, or F. null disables the grade gate.
+        'fail_on_grade' => null,
+
+        // Fail (exit 1) when the total debt score exceeds this number.
+        // null disables the score gate.
+        'max_score' => null,
+    ],
 ];
