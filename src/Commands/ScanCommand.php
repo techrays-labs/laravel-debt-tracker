@@ -7,6 +7,8 @@ namespace TechRaysLabs\DebtTracker\Commands;
 use Illuminate\Console\Command;
 use Laravel\Prompts\Progress;
 use TechRaysLabs\DebtTracker\DebtTracker;
+use TechRaysLabs\DebtTracker\Gating\DebtGate;
+use TechRaysLabs\DebtTracker\Gating\ResolvesGateOptions;
 use TechRaysLabs\DebtTracker\Pulse\DebtPulseIngestor;
 use TechRaysLabs\DebtTracker\Reports\JsonReporter;
 use TechRaysLabs\DebtTracker\Reports\MarkdownReporter;
@@ -22,17 +24,29 @@ use function Laravel\Prompts\progress;
  */
 class ScanCommand extends Command
 {
+    use ResolvesGateOptions;
+
     protected $signature = 'debt:scan
         {--only= : Comma-separated list of detectors to run (todos,complexity,coverage,dependencies,n1_queries,security,dead_code)}
         {--path= : Subdirectory to scan instead of configured scan_paths}
         {--export= : Export format: markdown, json, or markdown,json}
         {--min-score=0 : Minimum item score to include in output}
-        {--format=full : Output format (full|compact)}';
+        {--format=full : Output format (full|compact)}
+        {--fail-on-grade= : Fail (exit 1) when the grade is this letter or worse (A-F)}
+        {--max-score= : Fail (exit 1) when the total debt score exceeds this number}';
 
     protected $description = 'Scan your Laravel application for technical debt';
 
-    public function handle(DebtTracker $tracker, MarkdownReporter $markdownReporter, JsonReporter $jsonReporter): int
+    public function handle(DebtTracker $tracker, MarkdownReporter $markdownReporter, JsonReporter $jsonReporter, DebtGate $gate): int
     {
+        try {
+            [$failOnGrade, $maxScore] = $this->resolveGateThresholds();
+        } catch (\InvalidArgumentException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::INVALID;
+        }
+
         $only = $this->option('only')
             ? array_map('trim', explode(',', (string) $this->option('only')))
             : [];
@@ -91,6 +105,16 @@ class ScanCommand extends Command
             } catch (\Throwable $e) {
                 $this->components->warn("Pulse push failed: {$e->getMessage()}");
             }
+        }
+
+        $gateResult = $gate->evaluate($result, $failOnGrade, $maxScore);
+
+        if ($gateResult->active && ! $gateResult->passed) {
+            foreach ($gateResult->reasons as $reason) {
+                $this->components->error("Debt gate failed: {$reason}");
+            }
+
+            return self::FAILURE;
         }
 
         return self::SUCCESS;
