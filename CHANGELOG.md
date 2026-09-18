@@ -27,6 +27,9 @@ upgrading is a version-constraint bump with no code or config changes.
 - `--format` on `debt:scan` (previously declared but never read anywhere — `full`/`compact` were no-ops) now has real behavior for the new `agent` value. `full`/`compact` remain unchanged no-ops.
 - `GateResult` gained additive `gradeBreached`/`scoreBreached` booleans (default `false`) so `debt_gate_check` can report which threshold breached as structured data, alongside the existing human-readable `reasons`.
 
+### Fixed
+- **Memory exhaustion on large projects** — `debt:scan` (and now `debt:mcp-serve`) could fatally crash partway through a scan of a ~1,000+ file project. `AstParser` was caching every parsed AST for the life of a scan, with a 0% hit rate in practice (each file is only ever parsed once per scan), so memory usage grew unbounded until PHP's `memory_limit` was exhausted. Found via this release's own QA-4 large-repo testing; verified fix scans a real 1,700-file project in ~10s with no crash.
+
 ### Internal
 - Extracted `TechRaysLabs\DebtTracker\Gating\GateOptions` (grade/score validation) out of the `ResolvesGateOptions` command trait, and `TechRaysLabs\DebtTracker\Support\DebtResultLookup` (file/class lookup) out of `ShowFileCommand`/`ShowClassCommand` — both now shared by the CLI commands and the corresponding MCP tools, so there is one implementation of each, not two.
 - Bumped `guzzlehttp/guzzle`, `guzzlehttp/psr7`, `league/commonmark`, and `livewire/livewire` (dev dependencies) to clear 22 pre-existing security advisories surfaced by `composer audit` when `mcp/sdk`'s transitive dependencies were resolved.
