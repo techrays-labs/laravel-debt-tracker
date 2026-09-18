@@ -6,7 +6,7 @@
   "authors": [
     {
       "name": "Techrays Labs",
-      "email": "hello@techrayslabs.com",
+      "email": "opensource@techrayslabs.com",
       "homepage": "https://techrayslabs.com"
     }
   ],
@@ -20,17 +20,19 @@
     "symfony/finder": "^6.0|^7.0|^8.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
-    "pestphp/pest": "^2.0|^3.0",
-    "mockery/mockery": "^1.6",
     "larastan/larastan": "^3.0",
-    "phpstan/phpstan": "^2.0",
     "laravel/pint": "^1.0",
     "laravel/pulse": "^1.0",
-    "livewire/livewire": "^3.6"
+    "livewire/livewire": "^3.6",
+    "mcp/sdk": "^0.8",
+    "mockery/mockery": "^1.6",
+    "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+    "pestphp/pest": "^2.0|^3.0",
+    "phpstan/phpstan": "^2.0"
   },
   "suggest": {
-    "laravel/pulse": "Install to enable the Laravel Pulse dashboard integration (^1.0, tested with v1.0–v1.7)"
+    "laravel/pulse": "Install to enable the Laravel Pulse dashboard integration (^1.0, tested with v1.0–v1.7)",
+    "mcp/sdk": "Install to run `debt:mcp-serve`, exposing debt-tracker tools to MCP-capable AI agents (^0.8)"
   },
   "autoload": {
     "psr-4": {
