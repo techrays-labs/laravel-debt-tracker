@@ -11,9 +11,28 @@ namespace TechRaysLabs\DebtTracker\Git;
  */
 class GitBlameReader
 {
+    /**
+     * Default label => matching-keywords map for detecting a known AI
+     * coding tool from a commit's `Co-authored-by:` trailer.
+     *
+     * @var array<string, string[]>
+     */
+    private const DEFAULT_AI_CO_AUTHORS = [
+        'Claude' => ['claude', 'anthropic'],
+        'GitHub Copilot' => ['copilot'],
+        'Cursor' => ['cursor'],
+        'Aider' => ['aider'],
+        'Codex' => ['codex', 'openai'],
+        'Devin' => ['devin'],
+    ];
+
+    /**
+     * @param  array<string, string[]>  $aiCoAuthors  Label => matching-keywords map, see DEFAULT_AI_CO_AUTHORS
+     */
     public function __construct(
         private readonly string $projectRoot,
         private readonly int $timeout = 30,
+        private readonly array $aiCoAuthors = self::DEFAULT_AI_CO_AUTHORS,
     ) {}
 
     /**
@@ -111,6 +130,50 @@ class GitBlameReader
     }
 
     /**
+     * Returns the AI tool credited via a `Co-authored-by:` trailer on the
+     * commit that introduced this line (Claude Code, GitHub Copilot,
+     * Cursor, Aider, and other tools that write this convention), or null
+     * when the commit has no such trailer or it doesn't match a known tool.
+     */
+    public function getLineAiTool(string $absolutePath, int $lineNumber): ?string
+    {
+        if (! $this->isGitAvailable() || ! $this->isFileTracked($absolutePath)) {
+            return null;
+        }
+
+        $relative = $this->toRelative($absolutePath);
+        [$exitCode, $stdout] = $this->runCommand([
+            'git', 'blame', '-L', "{$lineNumber},{$lineNumber}", '--porcelain', $relative,
+        ]);
+
+        if ($exitCode !== 0 || empty($stdout) || ! preg_match('/^([0-9a-f]{40})/', $stdout, $shaMatch)) {
+            return null;
+        }
+
+        $sha = $shaMatch[1];
+
+        if ($sha === str_repeat('0', 40)) {
+            return null; // uncommitted line
+        }
+
+        [$logExitCode, $trailerOutput] = $this->runCommand([
+            'git', 'log', '-1', '--format=%(trailers:key=Co-authored-by,valueonly,unfold)', $sha,
+        ]);
+
+        if ($logExitCode !== 0 || trim($trailerOutput) === '') {
+            return null;
+        }
+
+        foreach (array_filter(array_map('trim', explode("\n", $trailerOutput))) as $trailer) {
+            if ($tool = $this->matchAiTool($trailer)) {
+                return $tool;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Maps an age in days to an age band string.
      */
     public function resolveAgeBand(int $ageDays): string
@@ -189,6 +252,25 @@ class GitBlameReader
     private function escapedRoot(): string
     {
         return escapeshellarg($this->projectRoot);
+    }
+
+    /**
+     * Matches a single `Co-authored-by:` trailer value against the
+     * configured AI tool keywords, returning the tool's display label.
+     */
+    private function matchAiTool(string $trailer): ?string
+    {
+        $lower = strtolower($trailer);
+
+        foreach ($this->aiCoAuthors as $label => $needles) {
+            foreach ($needles as $needle) {
+                if (str_contains($lower, strtolower($needle))) {
+                    return $label;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -62,3 +62,27 @@ it('toArray finalScore matches finalScore() method', function () {
     $item = makeDebtItem(baseScore: 7, ageMultiplier: 3.0);
     expect($item->toArray()['finalScore'])->toBe($item->finalScore());
 });
+
+it('aiTool defaults to null when not provided', function () {
+    expect(makeDebtItem()->aiTool)->toBeNull();
+});
+
+it('aiTool can be set and is included in toArray', function () {
+    $item = new DebtItem(
+        type: 'todo',
+        filePath: '/app/Foo.php',
+        className: 'Foo',
+        methodName: 'bar',
+        lineNumber: 42,
+        description: 'TODO: fix this',
+        baseScore: 10,
+        ageMultiplier: 1.0,
+        ageBand: 'fresh',
+        ageDays: 10,
+        gitAuthor: 'dev',
+        aiTool: 'Claude',
+    );
+
+    expect($item->aiTool)->toBe('Claude')
+        ->and($item->toArray()['aiTool'])->toBe('Claude');
+});

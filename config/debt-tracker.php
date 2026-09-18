@@ -37,6 +37,19 @@ return [
     'n1_ignore_properties' => ['id', 'uuid', 'created_at', 'updated_at', 'deleted_at'],
     'security_exclude_paths' => ['tests', 'database/seeders'],
     'dead_code_ignore_methods' => [],
+
+    // Maps a display label to the keywords matched (case-insensitively) against
+    // a commit's `Co-authored-by:` trailer name/email, to attribute debt to an
+    // AI coding tool alongside the human git-blame author. Extend this to
+    // recognize an in-house bot or a tool not listed by default.
+    'ai_co_authors' => [
+        'Claude' => ['claude', 'anthropic'],
+        'GitHub Copilot' => ['copilot'],
+        'Cursor' => ['cursor'],
+        'Aider' => ['aider'],
+        'Codex' => ['codex', 'openai'],
+        'Devin' => ['devin'],
+    ],
     'pulse' => [
         'enabled' => true,
     ],

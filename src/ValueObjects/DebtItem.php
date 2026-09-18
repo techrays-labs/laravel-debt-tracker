@@ -21,6 +21,7 @@ final class DebtItem
      * @param  string  $ageBand  Age category: 'fresh', 'growing', 'chronic', 'critical'
      * @param  int  $ageDays  Age of the debt item in days
      * @param  string|null  $gitAuthor  Author of the debt item from git blame
+     * @param  string|null  $aiTool  AI tool credited via a Co-authored-by trailer on the introducing commit, if any
      */
     public function __construct(
         public readonly string $type,
@@ -34,6 +35,7 @@ final class DebtItem
         public readonly string $ageBand,
         public readonly int $ageDays,
         public readonly ?string $gitAuthor,
+        public readonly ?string $aiTool = null,
     ) {}
 
     /**
@@ -63,6 +65,7 @@ final class DebtItem
             'ageBand' => $this->ageBand,
             'ageDays' => $this->ageDays,
             'gitAuthor' => $this->gitAuthor,
+            'aiTool' => $this->aiTool,
             'finalScore' => $this->finalScore(),
         ];
     }
