@@ -13,6 +13,7 @@
         }
     ],
     "authors": [],
+    "ai_tools": [],
     "top_files": [
         {
             "path": "app/Services/JobService.php",
@@ -39,7 +40,8 @@
             "age_band": "growing",
             "age_multiplier": 1.5,
             "final_score": 9,
-            "author": "chirag"
+            "author": "chirag",
+            "ai_tool": null
         }
     ],
     "meta": {

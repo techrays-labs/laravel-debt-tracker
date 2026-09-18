@@ -42,6 +42,12 @@ class JsonReporter
             $authorData[] = ['author' => $author, 'debt_score' => $score];
         }
 
+        $aiToolData = [];
+
+        foreach ($result->topAiTools(10) as $tool => $score) {
+            $aiToolData[] = ['tool' => $tool, 'debt_score' => $score];
+        }
+
         $data = [
             'generated_at' => $result->generatedAt->format(\DateTimeInterface::ATOM),
             'grade' => $result->grade,
@@ -51,6 +57,7 @@ class JsonReporter
             'item_count' => $result->totalItems(),
             'by_category' => $byCategoryData,
             'authors' => $authorData,
+            'ai_tools' => $aiToolData,
             'top_files' => array_map(
                 static fn ($f) => [
                     'path' => $f->relativePath,
@@ -80,6 +87,7 @@ class JsonReporter
                     'age_multiplier' => $item->ageMultiplier,
                     'final_score' => $item->finalScore(),
                     'author' => $item->gitAuthor,
+                    'ai_tool' => $item->aiTool,
                 ],
                 $allItems,
             ),

@@ -68,7 +68,7 @@ it('schema contains all required top-level keys', function () {
     expect($data)->toHaveKeys([
         'generated_at', 'grade', 'total_score', 'estimated_hours',
         'file_count', 'item_count', 'by_category', 'top_files',
-        'top_classes', 'items', 'meta',
+        'top_classes', 'items', 'meta', 'ai_tools',
     ]);
 });
 
@@ -80,8 +80,15 @@ it('items array contains one entry per debt item', function () {
     expect($data['items'][0])->toHaveKeys([
         'type', 'file', 'line', 'description',
         'base_score', 'age_days', 'age_band', 'age_multiplier',
-        'final_score', 'author',
+        'final_score', 'author', 'ai_tool',
     ]);
+});
+
+it('item ai_tool is null when the item has no AI co-author', function () {
+    $reporter = new JsonReporter;
+    $data = json_decode($reporter->generate(makeJsonScanResult()), true);
+
+    expect($data['items'][0]['ai_tool'])->toBeNull();
 });
 
 it('meta block includes package name and URL', function () {
@@ -140,10 +147,12 @@ it('includes authors key in JSON output', function () {
     expect($decoded['authors'])->toBeArray();
 });
 
-it('DEBT_REPORT.json structure stays byte-for-byte unchanged by the v2.0.0 agent-format work', function () {
-    // AGT-5: the agent-format contract is a separate serializer and must
-    // never alter the existing --export=json shape. Pinned against a
-    // checked-in golden fixture generated before that work landed.
+it('DEBT_REPORT.json structure matches its checked-in golden snapshot', function () {
+    // AGT-5: guards against ACCIDENTAL drift (e.g. from the separate
+    // agent-format serializer). Deliberate, intentional additions to this
+    // schema — like ai_tool/ai_tools in v2.1.0 — update the golden fixture
+    // in the same commit; this test's job is to make an unintentional
+    // change fail loudly, not to freeze the shape forever.
     $reporter = new JsonReporter;
     $json = $reporter->generate(makeJsonScanResult());
 
@@ -171,4 +180,52 @@ it('each authors entry has author and debt_score keys', function () {
     expect($decoded['authors'][0])->toHaveKeys(['author', 'debt_score']);
     expect($decoded['authors'][0]['author'])->toBe('John Doe');
     expect($decoded['authors'][0]['debt_score'])->toBe(142);
+});
+
+it('includes ai_tools key in JSON output', function () {
+    $result = new ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0,
+        byCategory: [],
+        generatedAt: new DateTimeImmutable,
+        projectPath: '/tmp',
+        byAiTool: ['Claude' => 210],
+    );
+
+    $reporter = new JsonReporter;
+    $decoded = json_decode($reporter->generate($result), true);
+
+    expect($decoded)->toHaveKey('ai_tools');
+    expect($decoded['ai_tools'])->toBeArray();
+});
+
+it('each ai_tools entry has tool and debt_score keys', function () {
+    $result = new ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0,
+        byCategory: [],
+        generatedAt: new DateTimeImmutable,
+        projectPath: '/tmp',
+        byAiTool: ['Claude' => 210, 'GitHub Copilot' => 40],
+    );
+
+    $reporter = new JsonReporter;
+    $decoded = json_decode($reporter->generate($result), true);
+
+    expect($decoded['ai_tools'][0])->toHaveKeys(['tool', 'debt_score']);
+    expect($decoded['ai_tools'][0]['tool'])->toBe('Claude');
+    expect($decoded['ai_tools'][0]['debt_score'])->toBe(210);
+});
+
+it('ai_tools is empty when byAiTool is empty', function () {
+    $reporter = new JsonReporter;
+    $data = json_decode($reporter->generate(makeJsonScanResult()), true);
+
+    expect($data['ai_tools'])->toBe([]);
 });

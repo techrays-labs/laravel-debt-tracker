@@ -32,6 +32,7 @@ class TerminalReporter
         $this->renderFilesTable($result->topFiles());
         $this->renderClassesTable($result->topClasses());
         $this->renderAuthorsTable($result);
+        $this->renderAiToolsTable($result);
         $this->output->writeln('');
         $this->output->writeln('  <comment>Run with --export=markdown or --export=json to save the full report.</comment>');
         $this->output->writeln('');
@@ -174,6 +175,29 @@ class TerminalReporter
 
         $this->output->writeln('  └──────────────────────────┴────────────┘');
         $this->output->writeln('  <comment>Higher score = more debt attributed to this author.</comment>');
+        $this->output->writeln('');
+    }
+
+    private function renderAiToolsTable(ScanResult $result): void
+    {
+        $tools = $result->topAiTools(10);
+
+        if (empty($tools)) {
+            return;
+        }
+
+        $this->output->writeln('  <options=bold>Top AI-Assisted Tools:</>');
+        $this->output->writeln('  ┌──────────────────────────┬────────────┐');
+        $this->output->writeln('  │ Tool                     │ Debt Score │');
+        $this->output->writeln('  ├──────────────────────────┼────────────┤');
+
+        foreach ($tools as $tool => $score) {
+            $display = strlen($tool) > 24 ? substr($tool, 0, 21).'...' : $tool;
+            $this->output->writeln(sprintf('  │ %-24s │ %10d │', $display, $score));
+        }
+
+        $this->output->writeln('  └──────────────────────────┴────────────┘');
+        $this->output->writeln('  <comment>Debt attributed to commits carrying a Co-authored-by trailer for this tool.</comment>');
         $this->output->writeln('');
     }
 

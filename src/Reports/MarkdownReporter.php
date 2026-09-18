@@ -21,6 +21,7 @@ class MarkdownReporter
             $this->renderExecutiveSummary($result),
             $this->renderCategoryTable($result),
             $this->renderAuthorTable($result),
+            $this->renderAiToolTable($result),
             $this->renderTopFiles($result),
             $this->renderTopClasses($result),
             $this->renderFullBreakdown($result),
@@ -151,6 +152,32 @@ class MarkdownReporter
 
         $lines[] = '';
         $lines[] = '> Higher score = more debt attributed to this author.';
+        $lines[] = '';
+
+        return implode("\n", $lines);
+    }
+
+    private function renderAiToolTable(ScanResult $result): string
+    {
+        $tools = $result->topAiTools(10);
+
+        if (empty($tools)) {
+            return '';
+        }
+
+        $lines = [
+            '## Debt by AI Tool',
+            '',
+            '| Tool | Debt Score |',
+            '|------|------------|',
+        ];
+
+        foreach ($tools as $tool => $score) {
+            $lines[] = "| {$tool} | {$score} |";
+        }
+
+        $lines[] = '';
+        $lines[] = '> Debt attributed to commits carrying a Co-authored-by trailer for this tool.';
         $lines[] = '';
 
         return implode("\n", $lines);

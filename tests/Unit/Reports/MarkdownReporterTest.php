@@ -143,3 +143,31 @@ it('omits Debt by Author section when only Unknown authors', function () {
 
     expect($output)->not->toContain('## Debt by Author');
 });
+
+it('includes Debt by AI Tool section when byAiTool is non-empty', function () {
+    $result = new ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0,
+        byCategory: [],
+        generatedAt: new DateTimeImmutable,
+        projectPath: '/tmp',
+        byAiTool: ['Claude' => 210, 'GitHub Copilot' => 40],
+    );
+
+    $reporter = new MarkdownReporter;
+    $output = $reporter->generate($result);
+
+    expect($output)->toContain('## Debt by AI Tool');
+    expect($output)->toContain('Claude');
+    expect($output)->toContain('210');
+});
+
+it('omits Debt by AI Tool section when byAiTool is empty', function () {
+    $reporter = new MarkdownReporter;
+    $output = $reporter->generate(makeScanResult());
+
+    expect($output)->not->toContain('## Debt by AI Tool');
+});
