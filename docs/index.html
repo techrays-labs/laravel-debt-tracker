@@ -198,6 +198,21 @@
   .flag-table .desc { color: var(--text-muted); }
   .ci-code { flex: 1; }
 
+  /* AI-authorship leaderboard */
+  .leaderboard { max-width: 640px; margin-top: 32px; display: flex; flex-direction: column; gap: 10px; }
+  .lb-row {
+    display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+    border-radius: 12px; background: var(--surface); border: 1px solid var(--surface-border);
+  }
+  .lb-row.lb-ai { background: rgba(255,45,32,0.08); border-color: rgba(255,45,32,0.28); }
+  .lb-rank { width: 20px; flex-shrink: 0; font-size: 13px; color: var(--text-dim); }
+  .lb-name { flex: 1; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 9px; }
+  .lb-tag {
+    font-size: 10.5px; padding: 2px 8px; border-radius: 999px;
+    background: var(--accent); color: #fff; letter-spacing: 0.03em;
+  }
+  .lb-score { font-size: 15px; font-weight: 500; }
+
   /* Timeline (Get started) */
   .timeline { position: relative; max-width: 640px; margin-top: 44px; }
   .timeline::before {
@@ -257,7 +272,7 @@
 <main class="wrap">
 
   <section class="hero">
-    <span class="pill mono"><span class="dot"></span><span>v2.0.0</span><span class="sep">&middot;</span><span>AI Agent Ready via MCP</span></span>
+    <span class="pill mono"><span class="dot"></span><span>v2.1.0</span><span class="sep">&middot;</span><span>AI Agent Ready via MCP</span></span>
     <h1>Find your technical debt.<br>Let your AI agent find it too.</h1>
     <p class="lede">Scan, score, and report technical debt in your Laravel app — with AST-aware complexity analysis and real git-blame scoring, exposed to Claude Code, Cursor, and any MCP client.</p>
     <div class="hero-actions">
@@ -373,6 +388,36 @@
 <span class="p">}</span></pre>
       </div>
     </div>
+  </section>
+
+  <section class="band" id="ai-authorship">
+    <span class="eyebrow">Know your contributors</span>
+    <h2>Is your AI agent your top debt author?</h2>
+    <p style="margin: 14px 0 0; max-width: 640px; font-size: 15.5px; line-height: 1.6; color: var(--text-muted);"><code>debt:scan</code> already attributes every item to its git-blame author. New in v2.1.0: it also reads each commit's <code>Co-authored-by:</code> trailer — Claude Code, GitHub Copilot, Cursor, Aider, Codex, and Devin are recognized out of the box — and ranks them right alongside your human contributors. Pure git-log parsing, zero new dependency.</p>
+
+    <div class="leaderboard">
+      <div class="lb-row lb-ai">
+        <span class="lb-rank mono">1</span>
+        <span class="lb-name">Claude<span class="lb-tag mono">AI</span></span>
+        <span class="lb-score mono">340</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank mono">2</span>
+        <span class="lb-name">Jane Doe</span>
+        <span class="lb-score mono">210</span>
+      </div>
+      <div class="lb-row lb-ai">
+        <span class="lb-rank mono">3</span>
+        <span class="lb-name">GitHub Copilot<span class="lb-tag mono">AI</span></span>
+        <span class="lb-score mono">140</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank mono">4</span>
+        <span class="lb-name">John Smith</span>
+        <span class="lb-score mono">87</span>
+      </div>
+    </div>
+    <div class="mono" style="margin-top: 12px; font-size: 12px; color: var(--text-dim);">Example output — real leaderboard scoped to your own repo's history.</div>
   </section>
 
   <section class="band" id="scoring">
@@ -505,7 +550,7 @@
 
       // Section headers reveal as they enter.
       gsap.utils.toArray('.band').forEach(function (band) {
-        gsap.from(band.querySelectorAll('.eyebrow, .band > h2, .spotlight-copy > h2'), {
+        gsap.from(band.querySelectorAll('.eyebrow, :scope > h2, .spotlight-copy > h2'), {
           y: 18, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08,
           scrollTrigger: { trigger: band, start: 'top 82%' },
         });
@@ -534,6 +579,12 @@
       gsap.from('.terminal pre', {
         opacity: 0, duration: 0.4, ease: 'none',
         scrollTrigger: { trigger: '.terminal', start: 'top 75%' },
+      });
+
+      // AI-authorship leaderboard: rows stagger in, top-ranked first.
+      gsap.from('.leaderboard .lb-row', {
+        y: 16, opacity: 0, duration: 0.45, ease: 'power2.out', stagger: 0.08,
+        scrollTrigger: { trigger: '.leaderboard', start: 'top 85%' },
       });
 
       // Scoring scale chips: each row staggers in as it's reached.
