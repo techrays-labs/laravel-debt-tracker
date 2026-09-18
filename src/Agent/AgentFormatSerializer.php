@@ -78,6 +78,7 @@ final class AgentFormatSerializer
             'age_band' => $item->ageBand,
             'age_days' => $item->ageDays,
             'summary' => $this->summaries->describe($item),
+            'ai_tool' => $item->aiTool,
         ];
     }
 }

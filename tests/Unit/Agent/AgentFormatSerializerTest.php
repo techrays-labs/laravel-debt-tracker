@@ -77,10 +77,11 @@ it('serializes each item with the full agent-format shape', function () {
 
     expect($item)->toHaveKeys([
         'type', 'file', 'line_range', 'class_name', 'method_name',
-        'final_score', 'age_band', 'age_days', 'summary',
+        'final_score', 'age_band', 'age_days', 'summary', 'ai_tool',
     ])
         ->and($item['line_range'])->toBe(['start' => 42, 'end' => 42])
         ->and($item['final_score'])->toBe(10)
+        ->and($item['ai_tool'])->toBeNull()
         ->and($item['summary'])->toBeString()->not->toBeEmpty();
 });
 
@@ -126,6 +127,25 @@ it('serializeItemForTool returns the same shape as an "items" entry', function (
 
     expect(makeSerializer()->serializeItemForTool($item))->toHaveKeys([
         'type', 'file', 'line_range', 'class_name', 'method_name',
-        'final_score', 'age_band', 'age_days', 'summary',
+        'final_score', 'age_band', 'age_days', 'summary', 'ai_tool',
     ]);
+});
+
+it('passes through a non-null ai_tool', function () {
+    $item = new DebtItem(
+        type: 'todo',
+        filePath: '/app/Foo.php',
+        className: 'Foo',
+        methodName: 'bar',
+        lineNumber: 42,
+        description: 'TODO: fix this',
+        baseScore: 10,
+        ageMultiplier: 1.0,
+        ageBand: 'fresh',
+        ageDays: 10,
+        gitAuthor: 'dev',
+        aiTool: 'Claude',
+    );
+
+    expect(makeSerializer()->serializeItemForTool($item)['ai_tool'])->toBe('Claude');
 });
