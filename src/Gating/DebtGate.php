@@ -26,12 +26,16 @@ class DebtGate
         $active = $failOnGrade !== null || $maxScore !== null;
         $reasons = [];
 
-        if ($failOnGrade !== null
-            && $this->grades->rank($result->grade) >= $this->grades->rank($failOnGrade)) {
+        $gradeBreached = $failOnGrade !== null
+            && $this->grades->rank($result->grade) >= $this->grades->rank($failOnGrade);
+
+        if ($gradeBreached) {
             $reasons[] = "grade {$result->grade} is at or below the failure threshold {$failOnGrade}";
         }
 
-        if ($maxScore !== null && $result->totalScore > $maxScore) {
+        $scoreBreached = $maxScore !== null && $result->totalScore > $maxScore;
+
+        if ($scoreBreached) {
             $reasons[] = "score {$result->totalScore} exceeds the maximum of {$maxScore}";
         }
 
@@ -39,6 +43,8 @@ class DebtGate
             active: $active,
             passed: $reasons === [],
             reasons: $reasons,
+            gradeBreached: $gradeBreached,
+            scoreBreached: $scoreBreached,
         );
     }
 }

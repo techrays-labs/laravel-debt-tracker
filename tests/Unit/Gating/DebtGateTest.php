@@ -64,3 +64,31 @@ it('is inactive when no thresholds are provided', function () {
         ->and($result->passed)->toBeTrue()
         ->and($result->reasons)->toBeEmpty();
 });
+
+it('flags gradeBreached independently of scoreBreached', function () {
+    $result = makeGate()->evaluate(makeGateScanResult('C', 100), 'C', 500);
+
+    expect($result->gradeBreached)->toBeTrue()
+        ->and($result->scoreBreached)->toBeFalse();
+});
+
+it('flags scoreBreached independently of gradeBreached', function () {
+    $result = makeGate()->evaluate(makeGateScanResult('A', 999), 'C', 500);
+
+    expect($result->gradeBreached)->toBeFalse()
+        ->and($result->scoreBreached)->toBeTrue();
+});
+
+it('flags both breach booleans when both thresholds are breached', function () {
+    $result = makeGate()->evaluate(makeGateScanResult('F', 999), 'C', 500);
+
+    expect($result->gradeBreached)->toBeTrue()
+        ->and($result->scoreBreached)->toBeTrue();
+});
+
+it('leaves both breach booleans false when the gate is inactive or passing', function () {
+    $result = makeGate()->evaluate(makeGateScanResult('A', 10), null, null);
+
+    expect($result->gradeBreached)->toBeFalse()
+        ->and($result->scoreBreached)->toBeFalse();
+});
