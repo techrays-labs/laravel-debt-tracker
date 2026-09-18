@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Pulse;
 use Livewire\Component;
 use Livewire\LivewireManager;
+use TechRaysLabs\DebtTracker\Commands\McpServeCommand;
 use TechRaysLabs\DebtTracker\Commands\ScanCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowClassCommand;
 use TechRaysLabs\DebtTracker\Commands\ShowFileCommand;
@@ -51,6 +52,7 @@ class DebtTrackerServiceProvider extends ServiceProvider
                 SummaryCommand::class,
                 ShowFileCommand::class,
                 ShowClassCommand::class,
+                McpServeCommand::class,
             ]);
         }
 
