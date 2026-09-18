@@ -1,0 +1,49 @@
+{
+    "generated_at": "2026-06-08T00:00:00+00:00",
+    "grade": "B",
+    "total_score": 141,
+    "estimated_hours": 35.3,
+    "file_count": 1,
+    "item_count": 1,
+    "by_category": [
+        {
+            "category": "n1_queries",
+            "items": 1,
+            "score": 141
+        }
+    ],
+    "authors": [],
+    "top_files": [
+        {
+            "path": "app/Services/JobService.php",
+            "items": 1,
+            "score": 9
+        }
+    ],
+    "top_classes": [
+        {
+            "class": "JobService",
+            "fqn": "App\\Services\\JobService",
+            "items": 1,
+            "score": 9
+        }
+    ],
+    "items": [
+        {
+            "type": "n1_queries",
+            "file": "/app/Services/JobService.php",
+            "line": 42,
+            "description": "Possible N+1: property fetch '$job->user' inside loop",
+            "base_score": 6,
+            "age_days": 45,
+            "age_band": "growing",
+            "age_multiplier": 1.5,
+            "final_score": 9,
+            "author": "chirag"
+        }
+    ],
+    "meta": {
+        "package": "techrays-labs/laravel-debt-tracker",
+        "url": "https://github.com/techrays-labs/laravel-debt-tracker"
+    }
+}

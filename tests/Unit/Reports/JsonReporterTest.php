@@ -140,6 +140,18 @@ it('includes authors key in JSON output', function () {
     expect($decoded['authors'])->toBeArray();
 });
 
+it('DEBT_REPORT.json structure stays byte-for-byte unchanged by the v2.0.0 agent-format work', function () {
+    // AGT-5: the agent-format contract is a separate serializer and must
+    // never alter the existing --export=json shape. Pinned against a
+    // checked-in golden fixture generated before that work landed.
+    $reporter = new JsonReporter;
+    $json = $reporter->generate(makeJsonScanResult());
+
+    $golden = file_get_contents(__DIR__.'/../../Fixtures/debt_report_snapshot.json');
+
+    expect(trim($json))->toBe(trim($golden));
+});
+
 it('each authors entry has author and debt_score keys', function () {
     $result = new ScanResult(
         fileResults: [],
