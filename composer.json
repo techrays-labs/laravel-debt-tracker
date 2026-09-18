@@ -23,7 +23,7 @@
     "larastan/larastan": "^3.0",
     "laravel/pint": "^1.0",
     "laravel/pulse": "^1.0",
-    "livewire/livewire": "^3.6",
+    "livewire/livewire": "^3.6 || ^4.0",
     "mcp/sdk": "^0.8",
     "mockery/mockery": "^1.6",
     "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
