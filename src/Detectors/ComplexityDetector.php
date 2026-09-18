@@ -88,7 +88,7 @@ class ComplexityDetector implements DetectorInterface
         ));
 
         if ($classLines >= $this->classLengthThreshold || $publicMethodCount > $this->maxPublicMethods) {
-            [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $classLine);
+            [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $classLine);
 
             $items[] = new DebtItem(
                 type: 'complexity',
@@ -102,6 +102,7 @@ class ComplexityDetector implements DetectorInterface
                 ageBand: $ageBand,
                 ageDays: $ageDays,
                 gitAuthor: $author,
+                aiTool: $aiTool,
             );
         }
 
@@ -114,7 +115,7 @@ class ComplexityDetector implements DetectorInterface
             $stmtCount = $astParser->countStatements($method);
 
             if ($stmtCount > $this->methodLengthThreshold) {
-                [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $startLine);
+                [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $startLine);
 
                 $items[] = new DebtItem(
                     type: 'complexity',
@@ -128,6 +129,7 @@ class ComplexityDetector implements DetectorInterface
                     ageBand: $ageBand,
                     ageDays: $ageDays,
                     gitAuthor: $author,
+                    aiTool: $aiTool,
                 );
             }
 
@@ -135,7 +137,7 @@ class ComplexityDetector implements DetectorInterface
             $complexity = $astParser->measureCyclomaticComplexity($method);
 
             if ($complexity > $this->complexityThreshold) {
-                [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $startLine);
+                [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $startLine);
 
                 $excess = $complexity - $this->complexityThreshold;
 
@@ -151,6 +153,7 @@ class ComplexityDetector implements DetectorInterface
                     ageBand: $ageBand,
                     ageDays: $ageDays,
                     gitAuthor: $author,
+                    aiTool: $aiTool,
                 );
             }
 
@@ -158,7 +161,7 @@ class ComplexityDetector implements DetectorInterface
             $depth = $astParser->measureMaxNestingDepth($method);
 
             if ($depth > $this->nestingDepthThreshold) {
-                [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $startLine);
+                [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $startLine);
 
                 $items[] = new DebtItem(
                     type: 'complexity',
@@ -172,6 +175,7 @@ class ComplexityDetector implements DetectorInterface
                     ageBand: $ageBand,
                     ageDays: $ageDays,
                     gitAuthor: $author,
+                    aiTool: $aiTool,
                 );
             }
         }
@@ -179,14 +183,15 @@ class ComplexityDetector implements DetectorInterface
         return $items;
     }
 
-    /** @return array{int, string, float, string|null} */
+    /** @return array{int, string, float, string|null, string|null} */
     private function gitData(?GitBlameReader $git, string $filePath, int $lineNumber): array
     {
         $ageDays = $git ? ($git->getLineAge($filePath, $lineNumber) ?? 0) : 0;
         $ageBand = $git ? $git->resolveAgeBand($ageDays) : 'fresh';
         $multiplier = $git ? $git->resolveAgeMultiplier($ageBand) : 1.0;
         $author = $git ? $git->getLineAuthor($filePath, $lineNumber) : null;
+        $aiTool = $git ? $git->getLineAiTool($filePath, $lineNumber) : null;
 
-        return [$ageDays, $ageBand, $multiplier, $author];
+        return [$ageDays, $ageBand, $multiplier, $author, $aiTool];
     }
 }

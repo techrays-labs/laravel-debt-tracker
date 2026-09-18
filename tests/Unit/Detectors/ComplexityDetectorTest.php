@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use TechRaysLabs\DebtTracker\Analyzers\AstParser;
 use TechRaysLabs\DebtTracker\Detectors\ComplexityDetector;
+use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 
 $fixtureDir = dirname(__DIR__, 2).'/Fixtures';
 
@@ -75,3 +76,42 @@ it('returns empty array when disabled', function () use ($fixtureDir) {
 
     expect($items)->toBeEmpty();
 });
+
+it('populates aiTool from GitBlameReader::getLineAiTool', function () use ($fixtureDir) {
+    $filePath = $fixtureDir.'/ComplexMethod.php';
+    $detector = new ComplexityDetector(complexityThreshold: 10);
+    $context = buildContext($filePath) + ['git' => complexityFakeGitReader('Cursor')];
+    $items = $detector->detect($filePath, $context);
+
+    expect($items)->not->toBeEmpty();
+
+    foreach ($items as $item) {
+        expect($item->aiTool)->toBe('Cursor');
+    }
+});
+
+function complexityFakeGitReader(?string $aiTool): GitBlameReader
+{
+    return new class($aiTool) extends GitBlameReader
+    {
+        public function __construct(private readonly ?string $aiTool)
+        {
+            parent::__construct('/tmp');
+        }
+
+        public function getLineAge(string $absolutePath, int $lineNumber): ?int
+        {
+            return 5;
+        }
+
+        public function getLineAuthor(string $absolutePath, int $lineNumber): ?string
+        {
+            return 'Jane Doe';
+        }
+
+        public function getLineAiTool(string $absolutePath, int $lineNumber): ?string
+        {
+            return $this->aiTool;
+        }
+    };
+}

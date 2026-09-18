@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use TechRaysLabs\DebtTracker\Analyzers\AstParser;
 use TechRaysLabs\DebtTracker\Detectors\DeadCodeDetector;
+use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 
 function deadCodeFixtureItems(): array
 {
@@ -101,3 +102,44 @@ it('returns empty array when no ast context provided', function () {
 
     expect($items)->toBeEmpty();
 });
+
+it('populates aiTool from GitBlameReader::getLineAiTool', function () {
+    $fixture = __DIR__.'/../../Fixtures/DeadCodeFixture.php';
+    $parser = new AstParser;
+    $ast = $parser->parse($fixture);
+
+    $detector = new DeadCodeDetector;
+    $items = $detector->detect($fixture, ['ast' => $ast, 'git' => deadCodeFakeGitReader('Aider')]);
+
+    expect($items)->not->toBeEmpty();
+
+    foreach ($items as $item) {
+        expect($item->aiTool)->toBe('Aider');
+    }
+});
+
+function deadCodeFakeGitReader(?string $aiTool): GitBlameReader
+{
+    return new class($aiTool) extends GitBlameReader
+    {
+        public function __construct(private readonly ?string $aiTool)
+        {
+            parent::__construct('/tmp');
+        }
+
+        public function getLineAge(string $absolutePath, int $lineNumber): ?int
+        {
+            return 5;
+        }
+
+        public function getLineAuthor(string $absolutePath, int $lineNumber): ?string
+        {
+            return 'Jane Doe';
+        }
+
+        public function getLineAiTool(string $absolutePath, int $lineNumber): ?string
+        {
+            return $this->aiTool;
+        }
+    };
+}

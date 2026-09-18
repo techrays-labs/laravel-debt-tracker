@@ -69,6 +69,7 @@ class TodoDetector implements DetectorInterface
                     $ageBand = $git ? $git->resolveAgeBand($ageDays) : 'fresh';
                     $multiplier = $git ? $git->resolveAgeMultiplier($ageBand) : 1.0;
                     $author = $git ? $git->getLineAuthor($filePath, $lineNumber) : null;
+                    $aiTool = $git ? $git->getLineAiTool($filePath, $lineNumber) : null;
 
                     $items[] = new DebtItem(
                         type: 'todo',
@@ -82,6 +83,7 @@ class TodoDetector implements DetectorInterface
                         ageBand: $ageBand,
                         ageDays: $ageDays,
                         gitAuthor: $author,
+                        aiTool: $aiTool,
                     );
 
                     // Only match the first pattern per line to avoid duplicates.

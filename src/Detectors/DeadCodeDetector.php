@@ -230,6 +230,7 @@ class DeadCodeDetector implements DetectorInterface
         $ageBand = $git ? $git->resolveAgeBand($ageDays) : 'fresh';
         $multiplier = $git ? $git->resolveAgeMultiplier($ageBand) : 1.0;
         $author = $git ? $git->getLineAuthor($filePath, $lineNumber) : null;
+        $aiTool = $git ? $git->getLineAiTool($filePath, $lineNumber) : null;
 
         return new DebtItem(
             type: 'dead_code',
@@ -243,6 +244,7 @@ class DeadCodeDetector implements DetectorInterface
             ageBand: $ageBand,
             ageDays: $ageDays,
             gitAuthor: $author,
+            aiTool: $aiTool,
         );
     }
 }

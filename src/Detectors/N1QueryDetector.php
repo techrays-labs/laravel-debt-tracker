@@ -215,7 +215,7 @@ class N1QueryDetector implements DetectorInterface
             }
 
             $line = $fetch->getStartLine();
-            [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $line);
+            [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $line);
 
             $items[] = new DebtItem(
                 type: 'n1_queries',
@@ -229,6 +229,7 @@ class N1QueryDetector implements DetectorInterface
                 ageBand: $ageBand,
                 ageDays: $ageDays,
                 gitAuthor: $author,
+                aiTool: $aiTool,
             );
         }
 
@@ -255,7 +256,7 @@ class N1QueryDetector implements DetectorInterface
 
             $relationMethod = $inner->name instanceof Identifier ? $inner->name->name : '?';
             $line = $call->getStartLine();
-            [$ageDays, $ageBand, $multiplier, $author] = $this->gitData($git, $filePath, $line);
+            [$ageDays, $ageBand, $multiplier, $author, $aiTool] = $this->gitData($git, $filePath, $line);
 
             $items[] = new DebtItem(
                 type: 'n1_queries',
@@ -269,6 +270,7 @@ class N1QueryDetector implements DetectorInterface
                 ageBand: $ageBand,
                 ageDays: $ageDays,
                 gitAuthor: $author,
+                aiTool: $aiTool,
             );
         }
 
@@ -307,14 +309,15 @@ class N1QueryDetector implements DetectorInterface
         return false;
     }
 
-    /** @return array{int, string, float, string|null} */
+    /** @return array{int, string, float, string|null, string|null} */
     private function gitData(?GitBlameReader $git, string $filePath, int $lineNumber): array
     {
         $ageDays = $git ? ($git->getLineAge($filePath, $lineNumber) ?? 0) : 0;
         $ageBand = $git ? $git->resolveAgeBand($ageDays) : 'fresh';
         $multiplier = $git ? $git->resolveAgeMultiplier($ageBand) : 1.0;
         $author = $git ? $git->getLineAuthor($filePath, $lineNumber) : null;
+        $aiTool = $git ? $git->getLineAiTool($filePath, $lineNumber) : null;
 
-        return [$ageDays, $ageBand, $multiplier, $author];
+        return [$ageDays, $ageBand, $multiplier, $author, $aiTool];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use TechRaysLabs\DebtTracker\Analyzers\AstParser;
 use TechRaysLabs\DebtTracker\Detectors\N1QueryDetector;
+use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 
 $fixtureDir = dirname(__DIR__, 2).'/Fixtures';
 
@@ -28,6 +29,49 @@ it('flags chained query call inside ->each() closure', function () use ($fixture
     $queryChains = array_filter($items, fn ($i) => str_contains($i->description, '()->count()'));
     expect($queryChains)->toHaveCount(1);
 });
+
+it('populates aiTool from GitBlameReader::getLineAiTool', function () use ($fixtureDir) {
+    $detector = new N1QueryDetector;
+    $astParser = new AstParser;
+    $ast = $astParser->parse($fixtureDir.'/N1QueryFixture.php');
+
+    $items = $detector->detect($fixtureDir.'/N1QueryFixture.php', [
+        'ast' => $ast,
+        'git' => n1FakeGitReader('Codex'),
+    ]);
+
+    expect($items)->not->toBeEmpty();
+
+    foreach ($items as $item) {
+        expect($item->aiTool)->toBe('Codex');
+    }
+});
+
+function n1FakeGitReader(?string $aiTool): GitBlameReader
+{
+    return new class($aiTool) extends GitBlameReader
+    {
+        public function __construct(private readonly ?string $aiTool)
+        {
+            parent::__construct('/tmp');
+        }
+
+        public function getLineAge(string $absolutePath, int $lineNumber): ?int
+        {
+            return 5;
+        }
+
+        public function getLineAuthor(string $absolutePath, int $lineNumber): ?string
+        {
+            return 'Jane Doe';
+        }
+
+        public function getLineAiTool(string $absolutePath, int $lineNumber): ?string
+        {
+            return $this->aiTool;
+        }
+    };
+}
 
 it('does not flag when ->with() precedes the foreach', function () use ($fixtureDir) {
     $detector = new N1QueryDetector;

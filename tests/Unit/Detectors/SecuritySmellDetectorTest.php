@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use TechRaysLabs\DebtTracker\Detectors\SecuritySmellDetector;
+use TechRaysLabs\DebtTracker\Git\GitBlameReader;
 
 $fixture = __DIR__.'/../../Fixtures/SecuritySmellFixture.php';
 
@@ -98,3 +99,40 @@ it('works without ast context (regex-only detector)', function () use ($fixture)
 
     expect(count($items))->toBe(6);
 });
+
+it('populates aiTool from GitBlameReader::getLineAiTool', function () use ($fixture) {
+    $detector = new SecuritySmellDetector(excludePaths: []);
+    $items = $detector->detect($fixture, ['git' => securityFakeGitReader('GitHub Copilot')]);
+
+    expect($items)->not->toBeEmpty();
+
+    foreach ($items as $item) {
+        expect($item->aiTool)->toBe('GitHub Copilot');
+    }
+});
+
+function securityFakeGitReader(?string $aiTool): GitBlameReader
+{
+    return new class($aiTool) extends GitBlameReader
+    {
+        public function __construct(private readonly ?string $aiTool)
+        {
+            parent::__construct('/tmp');
+        }
+
+        public function getLineAge(string $absolutePath, int $lineNumber): ?int
+        {
+            return 5;
+        }
+
+        public function getLineAuthor(string $absolutePath, int $lineNumber): ?string
+        {
+            return 'Jane Doe';
+        }
+
+        public function getLineAiTool(string $absolutePath, int $lineNumber): ?string
+        {
+            return $this->aiTool;
+        }
+    };
+}

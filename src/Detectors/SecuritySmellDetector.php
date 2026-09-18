@@ -163,6 +163,7 @@ class SecuritySmellDetector implements DetectorInterface
         $ageBand = $git ? $git->resolveAgeBand($ageDays) : 'fresh';
         $multiplier = $git ? $git->resolveAgeMultiplier($ageBand) : 1.0;
         $author = $git ? $git->getLineAuthor($filePath, $lineNumber) : null;
+        $aiTool = $git ? $git->getLineAiTool($filePath, $lineNumber) : null;
 
         return new DebtItem(
             type: 'security',
@@ -176,6 +177,7 @@ class SecuritySmellDetector implements DetectorInterface
             ageBand: $ageBand,
             ageDays: $ageDays,
             gitAuthor: $author,
+            aiTool: $aiTool,
         );
     }
 }
