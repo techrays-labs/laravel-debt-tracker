@@ -106,3 +106,42 @@ it('byAuthor stores Unknown key for null authors', function () {
     expect($result->byAuthor)->toHaveKey('Unknown');
     expect($result->byAuthor['Unknown'])->toBe(30);
 });
+
+function makeScanResultWithAiTools(array $byAiTool = []): ScanResult
+{
+    return new ScanResult(
+        fileResults: [],
+        classResults: [],
+        totalScore: 0,
+        grade: 'A',
+        estimatedHours: 0.0,
+        byCategory: [],
+        generatedAt: new DateTimeImmutable('2026-01-01'),
+        projectPath: '/tmp',
+        byAiTool: $byAiTool,
+    );
+}
+
+it('topAiTools returns entries sorted by score descending', function () {
+    $result = makeScanResultWithAiTools(['Cursor' => 40, 'Claude' => 210, 'Aider' => 15]);
+
+    expect(array_keys($result->topAiTools()))->toBe(['Claude', 'Cursor', 'Aider']);
+});
+
+it('topAiTools respects the limit', function () {
+    $result = makeScanResultWithAiTools(['Claude' => 100, 'Copilot' => 80, 'Aider' => 60]);
+
+    expect($result->topAiTools(2))->toHaveCount(2);
+});
+
+it('topAiTools returns empty array when byAiTool is empty', function () {
+    $result = makeScanResultWithAiTools();
+
+    expect($result->topAiTools())->toBeEmpty();
+});
+
+it('byAiTool defaults to an empty array', function () {
+    $result = makeScanResultWithAuthors(['Jane' => 10]);
+
+    expect($result->byAiTool)->toBe([]);
+});

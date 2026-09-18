@@ -137,6 +137,17 @@ class DebtTracker
             $byAuthor[$author] = ($byAuthor[$author] ?? 0) + $item->finalScore();
         }
 
+        // Compute byAiTool — group items with a detected AI co-author by tool
+        $byAiTool = [];
+
+        foreach ($allItems as $item) {
+            if ($item->aiTool === null) {
+                continue;
+            }
+
+            $byAiTool[$item->aiTool] = ($byAiTool[$item->aiTool] ?? 0) + $item->finalScore();
+        }
+
         return new ScanResult(
             fileResults: $fileResults,
             classResults: $classResults,
@@ -147,6 +158,7 @@ class DebtTracker
             generatedAt: new \DateTimeImmutable,
             projectPath: $projectRoot,
             byAuthor: $byAuthor,
+            byAiTool: $byAiTool,
         );
     }
 

@@ -19,6 +19,7 @@ final class ScanResult
      * @param  \DateTimeImmutable  $generatedAt  Timestamp of the scan
      * @param  string  $projectPath  Absolute path to the scanned project
      * @param  array<string,int>  $byAuthor  Total debt score per git author
+     * @param  array<string,int>  $byAiTool  Total debt score per AI co-author tool (Claude, GitHub Copilot, ...)
      */
     public function __construct(
         public readonly array $fileResults,
@@ -30,6 +31,7 @@ final class ScanResult
         public readonly \DateTimeImmutable $generatedAt,
         public readonly string $projectPath,
         public readonly array $byAuthor = [],
+        public readonly array $byAiTool = [],
     ) {}
 
     /**
@@ -68,6 +70,19 @@ final class ScanResult
     public function topAuthors(int $n = 10): array
     {
         $sorted = $this->byAuthor;
+        arsort($sorted);
+
+        return array_slice($sorted, 0, $n, true);
+    }
+
+    /**
+     * Returns the N AI tools with the highest total debt score, sorted descending.
+     *
+     * @return array<string,int>
+     */
+    public function topAiTools(int $n = 10): array
+    {
+        $sorted = $this->byAiTool;
         arsort($sorted);
 
         return array_slice($sorted, 0, $n, true);
