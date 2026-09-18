@@ -216,7 +216,7 @@ agent to apply fixes, that's a separate concern from diagnostics.
 
 ---
 
-> **Support policy:** Only the current release (`v1.3.x`) receives bug fixes, security patches, and updates. All versions below v1.3 have reached end of life. If you are on v1.0, v1.1, or v1.2 please upgrade — see [CHANGELOG.md](CHANGELOG.md) for what changed.
+> **Support policy:** Only the current release (`v2.0.x`) receives bug fixes, security patches, and updates. All versions below v2.0 have reached end of life. Upgrading from any `1.x` release is additive-only — see [UPGRADE.md](UPGRADE.md) and [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 ---
 

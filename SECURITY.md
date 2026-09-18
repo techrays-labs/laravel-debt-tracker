@@ -4,10 +4,10 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.3.x   | ✅ Active — current release |
-| < 1.3   | ❌ No longer supported |
+| 2.0.x   | ✅ Active — current release |
+| < 2.0   | ❌ No longer supported |
 
-> **Note:** As of v1.3.0, all versions prior to 1.3 have reached end of life. No bug fixes, security patches, or updates will be issued for 1.0.x, 1.1.x, or 1.2.x. Please upgrade to v1.3.
+> **Note:** As of v2.0.0, all versions prior to 2.0 have reached end of life. No bug fixes, security patches, or updates will be issued for 1.0.x, 1.1.x, 1.2.x, or 1.3.x. Please upgrade to v2.0 — it is an additive-only release, see [UPGRADE.md](UPGRADE.md).
 
 ## Reporting a Vulnerability
 

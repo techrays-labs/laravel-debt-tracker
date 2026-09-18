@@ -1,6 +1,35 @@
 # Changelog
 
-> **Support policy:** Only `v1.3.x` is actively maintained. All prior versions (1.0, 1.1, 1.2) are end of life — no further bug fixes or security patches will be issued for them.
+> **Support policy:** Only `v2.0.x` is actively maintained. All prior versions (1.0, 1.1, 1.2, 1.3) are end of life — no further bug fixes or security patches will be issued for them.
+
+## [2.0.0] - 2026-09-18
+
+**All versions prior to 2.0 are now end of life.** See the Support policy note
+above and [UPGRADE.md](UPGRADE.md) — this release is additive-only, so
+upgrading is a version-constraint bump with no code or config changes.
+
+### Added
+- **Agent-facing interface** — a stable, machine-readable output contract and a local MCP server, so AI coding agents (Claude Code, Cursor, GitHub Copilot) query real debt data instead of approximating it with grep.
+  - **`--format=agent`** on `debt:scan` and `debt:summary` — prints a single versioned JSON document to stdout, independent of the existing `--export=json` schema. No progress bar, tables, or other output is mixed into stdout in this mode.
+    - Every response includes `schema_version` (`"1.0"`, versioned independently of the package's own semver).
+    - Every debt item includes `file`, `line_range`, `type`, `final_score`, `age_band`/`age_days`, `class_name`/`method_name` where applicable, and a one-sentence natural-language `summary`.
+    - A `priority` array — the top-scored items, capped by the new `--limit=N` flag (default `10`) — reserved for hotspot/churn-weighted sorting in a future release without a breaking change to the field.
+    - A zero-item scan returns the full schema with empty `items`/`priority` arrays. An internal failure returns `{"error": {"code", "message"}}` and nothing else on stdout, with a non-zero exit code.
+    - Existing CI gate flags (`--fail-on-grade`, `--max-score`) still control the exit code in agent format; only invalid flag input or an internal error changes the payload to the error shape.
+    - New `TechRaysLabs\DebtTracker\Agent\AgentFormatSerializer` and `AgentSummaryBuilder`, tested and versioned separately from `Reports\JsonReporter` — a regression test pins `--export=json`'s existing byte shape so the two can never silently couple.
+  - **`debt:mcp-serve`** — starts a local, read-only MCP server over stdio, exposing exactly four tools backed by the same scan/gate logic as the CLI:
+    - `debt_scan`, `debt_show_file`, `debt_show_class`, `debt_gate_check`.
+    - No tool accepts a shell command, a file path outside the scanned project, or performs a write — enforced by an integration test against the real MCP protocol, not just documentation.
+    - Requires the new `mcp/sdk` package (official PHP MCP SDK), added as `suggest`-only — same pattern as the optional Pulse integration. A plain `composer require --dev techrays-labs/laravel-debt-tracker` install pulls in nothing new.
+  - New README "Agent / MCP Integration" section with copy-pasteable registration snippets for Claude Code, Cursor, and a generic MCP client, and a worked `debt_scan` → `debt_show_file` example transcript.
+
+### Changed
+- `--format` on `debt:scan` (previously declared but never read anywhere — `full`/`compact` were no-ops) now has real behavior for the new `agent` value. `full`/`compact` remain unchanged no-ops.
+- `GateResult` gained additive `gradeBreached`/`scoreBreached` booleans (default `false`) so `debt_gate_check` can report which threshold breached as structured data, alongside the existing human-readable `reasons`.
+
+### Internal
+- Extracted `TechRaysLabs\DebtTracker\Gating\GateOptions` (grade/score validation) out of the `ResolvesGateOptions` command trait, and `TechRaysLabs\DebtTracker\Support\DebtResultLookup` (file/class lookup) out of `ShowFileCommand`/`ShowClassCommand` — both now shared by the CLI commands and the corresponding MCP tools, so there is one implementation of each, not two.
+- Bumped `guzzlehttp/guzzle`, `guzzlehttp/psr7`, `league/commonmark`, and `livewire/livewire` (dev dependencies) to clear 22 pre-existing security advisories surfaced by `composer audit` when `mcp/sdk`'s transitive dependencies were resolved.
 
 ## [1.3.1] - 2026-07-23
 
