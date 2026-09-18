@@ -56,6 +56,7 @@
 - **Laravel Pulse cards** — grade summary, score trend, hottest files, and author leaderboard visible in your Pulse dashboard with zero extra packages
 - **Debt grading** — A through F, with estimated dev hours to resolve
 - **Markdown & JSON export** — shareable reports with a shield badge for your README
+- **Agent / MCP interface** — `--format=agent` JSON contract plus a local `debt:mcp-serve` MCP server, so AI coding agents query real debt data instead of grepping for it
 
 ---
 
@@ -246,6 +247,149 @@ Instead of repeating flags in every workflow, set defaults in
 > **Note on `debt:summary`:** without any gate flag or `ci` config, `debt:summary`
 > keeps its historical exit codes (`0` for A/B, `1` for C, `2` for D/F). Passing a
 > gate flag (or setting the `ci` config) switches it to the gate's `0`/`1` scheme.
+
+---
+
+## Agent / MCP Integration
+
+AI coding agents (Claude Code, Cursor, GitHub Copilot, or any MCP-capable
+client) can query real debt data from this package directly — the AST-aware
+complexity analysis and git-blame age scoring you already get from
+`debt:scan`, instead of an agent approximating the same signals with grep.
+
+Two ways in, both new in v2.0.0 and fully opt-in:
+
+### `--format=agent`
+
+`debt:scan` and `debt:summary` accept `--format=agent`, which prints a single
+versioned JSON document to stdout instead of the terminal report — no
+progress bar, no tables, nothing else mixed into stdout:
+
+```bash
+php artisan debt:scan --format=agent --limit=5
+```
+
+```json
+{
+  "schema_version": "1.0",
+  "grade": "B",
+  "total_score": 342,
+  "estimated_hours": 85.5,
+  "file_count": 128,
+  "item_count": 47,
+  "items": [
+    {
+      "type": "complexity",
+      "file": "/absolute/path/to/app/Services/PaymentService.php",
+      "line_range": { "start": 88, "end": 88 },
+      "class_name": "PaymentService",
+      "method_name": "process",
+      "final_score": 18,
+      "age_band": "chronic",
+      "age_days": 142,
+      "summary": "This complexity issue in PaymentService::process() has been chronic for 142 days and carries a score of 18."
+    }
+  ],
+  "priority": [ /* same shape as "items", top-scored, capped by --limit (default 10) */ ],
+  "meta": { "package": "techrays-labs/laravel-debt-tracker", "version": "2.0.0", "generated_at": "2026-09-18T10:00:00+00:00" }
+}
+```
+
+`--format=agent` on `debt:summary` returns the identical schema — one
+contract, whichever command you call it from. A zero-item scan still returns
+the full schema with empty `items`/`priority` arrays; an internal failure
+returns `{"error": {"code", "message"}}` and nothing else on stdout. Gate
+flags (`--fail-on-grade`, `--max-score`) still apply and still control the
+exit code (`0`/`1`); only a bad flag value or an internal error changes the
+payload to the error shape (exit `2`/`3`).
+
+This JSON contract is versioned (`schema_version`) and tested independently
+of `--export=json` — evolving one never silently changes the other.
+
+### `debt:mcp-serve`
+
+Starts a local MCP server over stdio, exposing four read-only tools backed by
+the exact same scan/gate logic as the CLI:
+
+| Tool | Same as |
+|------|---------|
+| `debt_scan` | `debt:scan --format=agent` (`path`, `only`, `limit` params) |
+| `debt_show_file` | `debt:show-file` |
+| `debt_show_class` | `debt:show-class` |
+| `debt_gate_check` | the CI Debt Gate (`failOnGrade`, `maxScore` params) |
+
+```bash
+php artisan debt:mcp-serve
+```
+
+Requires the `mcp/sdk` package, which is **not** installed by a plain
+`composer require --dev techrays-labs/laravel-debt-tracker` — same
+suggest-only pattern as the optional Laravel Pulse integration:
+
+```bash
+composer require --dev mcp/sdk
+```
+
+Running `debt:mcp-serve` without it prints a clear error instead of
+fataling.
+
+#### Claude Code
+
+```bash
+claude mcp add --transport stdio debt-tracker -- php artisan debt:mcp-serve
+```
+
+#### Cursor
+
+Add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "debt-tracker": {
+      "command": "php",
+      "args": ["artisan", "debt:mcp-serve"]
+    }
+  }
+}
+```
+
+#### Generic MCP client
+
+```json
+{
+  "mcpServers": {
+    "debt-tracker": {
+      "command": "php",
+      "args": ["artisan", "debt:mcp-serve"],
+      "cwd": "/path/to/your/laravel/app"
+    }
+  }
+}
+```
+
+#### Worked example
+
+```
+Agent → calls debt_scan {"limit": 3}
+Server → { "grade": "B", "total_score": 342, "priority": [
+             { "file": "app/Services/PaymentService.php", "method_name": "process",
+               "final_score": 18, "summary": "This complexity issue in PaymentService::process() has been chronic for 142 days and carries a score of 18." },
+             ...
+           ], ... }
+Agent → reads priority[0], calls debt_show_file {"path": "app/Services/PaymentService.php"}
+Server → the full item list for that file, same agent-format shape
+Agent → proposes a refactor of PaymentService::process() to the developer, citing the score and age
+```
+
+#### Threat model (MCP-5)
+
+The server is **read-only by design**: no tool accepts a shell command, a
+file path outside the scanned project root, or performs a file write.
+Exactly four tools are exposed — nothing else — enforced by an integration
+test against the real protocol, not just documentation. Auto-fixing or
+code-writing is explicitly out of scope for this interface; if you want an
+agent to apply fixes, that's a separate concern from diagnostics.
 
 ---
 
