@@ -58,6 +58,7 @@
 - **Dependency audit** — flags outdated or abandoned Composer packages
 - **Git blame enrichment** — older debt scores higher; age is the multiplier
 - **Git author leaderboard** — surfaces who owns the most debt across terminal, Markdown, and JSON reports
+- **AI-authorship visibility** — detects `Co-authored-by:` trailers from Claude Code, GitHub Copilot, Cursor, Aider, Codex, and Devin, and splits the leaderboard by human vs. AI-assisted commits
 - **Laravel Pulse cards** — grade summary, score trend, hottest files, and author leaderboard visible in your Pulse dashboard with zero extra packages
 - **Debt grading** — A through F, with estimated dev hours to resolve
 - **Markdown & JSON export** — shareable reports with a shield badge for your README
@@ -216,7 +217,7 @@ agent to apply fixes, that's a separate concern from diagnostics.
 
 ---
 
-> **Support policy:** Only the current release (`v2.0.x`) receives bug fixes, security patches, and updates. All versions below v2.0 have reached end of life. Upgrading from any `1.x` release is additive-only — see [UPGRADE.md](UPGRADE.md) and [CHANGELOG.md](CHANGELOG.md) for what changed.
+> **Support policy:** The `v2.x` line receives bug fixes, security patches, and updates. All versions below v2.0 have reached end of life. Upgrading from any `1.x` release is additive-only — see [UPGRADE.md](UPGRADE.md) and [CHANGELOG.md](CHANGELOG.md) for what changed.
 
 ---
 
@@ -556,6 +557,63 @@ Item Score = Base Weight × Age Multiplier
 
 ---
 
+## AI-Authorship Visibility
+
+Is your AI coding agent your top debt author? `debt:scan` already attributes
+every item to its git-blame author — as of v2.1.0, it also detects when that
+commit carries a `Co-authored-by:` trailer for a known AI coding tool
+(Claude Code, GitHub Copilot, Cursor, Aider, Codex, and Devin, out of the
+box), and splits the leaderboard accordingly.
+
+No new flag, no new command — it's pure `git log`/`git blame` parsing on top
+of the existing author leaderboard:
+
+```bash
+php artisan debt:scan
+```
+
+```
+  Top Debt Authors:
+  ┌──────────────────────────┬────────────┐
+  │ Author                   │ Debt Score │
+  ├──────────────────────────┼────────────┤
+  │ Jane Doe                 │        142 │
+  └──────────────────────────┴────────────┘
+
+  Top AI-Assisted Tools:
+  ┌──────────────────────────┬────────────┐
+  │ Tool                     │ Debt Score │
+  ├──────────────────────────┼────────────┤
+  │ Claude                   │        340 │
+  └──────────────────────────┴────────────┘
+```
+
+Both tables appear in the terminal report, `--export=markdown` (`## Debt by
+AI Tool`), `--export=json` (top-level `ai_tools` array), and as an `ai_tool`
+field on every item in `--format=agent` — so your agent can ask "was this
+debt AI-introduced?" directly.
+
+### Recognizing a custom tool
+
+Extend or override the default keyword map in `config/debt-tracker.php`:
+
+```php
+'ai_co_authors' => [
+    'Claude' => ['claude', 'anthropic'],
+    'GitHub Copilot' => ['copilot'],
+    'Cursor' => ['cursor'],
+    'Aider' => ['aider'],
+    'Codex' => ['codex', 'openai'],
+    'Devin' => ['devin'],
+    'Internal Bot' => ['internal-bot'], // your own addition
+],
+```
+
+Each entry's keywords are matched case-insensitively against the trailer's
+name and email.
+
+---
+
 ## Reports
 
 ### Markdown
@@ -580,6 +638,7 @@ The exported `DEBT_REPORT.md` includes a shields.io badge you can embed in your 
   "item_count": 21,
   "by_category": [...],
   "authors": [{"author": "Jane Doe", "debt_score": 87}, ...],
+  "ai_tools": [{"tool": "Claude", "debt_score": 34}, ...],
   "top_files": [...],
   "top_classes": [...],
   "items": [...],

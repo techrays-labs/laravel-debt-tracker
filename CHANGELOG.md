@@ -1,6 +1,17 @@
 # Changelog
 
-> **Support policy:** Only `v2.0.x` is actively maintained. All prior versions (1.0, 1.1, 1.2, 1.3) are end of life — no further bug fixes or security patches will be issued for them.
+> **Support policy:** The `v2.x` line is actively maintained. All prior versions (1.0, 1.1, 1.2, 1.3) are end of life — no further bug fixes or security patches will be issued for them.
+
+## [2.1.0] - 2026-09-19
+
+### Added
+- **AI-authorship visibility** — debt score now splits by human vs. AI-assisted commits, alongside the existing git-blame author leaderboard.
+  - `GitBlameReader::getLineAiTool()` resolves the commit that introduced a line via `git blame`, then reads its `Co-authored-by:` trailer(s) via `git log`'s `%(trailers:...)` format specifier and matches them against a configurable `ai_co_authors` map. Pure git-log parsing — no new dependency.
+  - Recognizes Claude, GitHub Copilot, Cursor, Aider, Codex, and Devin out of the box; the `ai_co_authors` config key lets you add an in-house bot or any tool not listed by default.
+  - New `DebtItem::$aiTool` (nullable, additive) — populated by the five line-level detectors (`todos`, `complexity`, `n1_queries`, `security`, `dead_code`). `coverage` intentionally stays untouched — it already has no single line to blame for a whole-class finding, so `aiTool` stays `null` there too, same as `gitAuthor`.
+  - New `ScanResult::$byAiTool` / `topAiTools()`, built by `DebtTracker::scan()` alongside the existing `byAuthor`/`topAuthors()` — fully additive, defaults to `[]`.
+  - `debt:scan`'s terminal output gains a "Top AI-Assisted Tools" table right after "Top Debt Authors" (hidden when empty). `MarkdownReporter` gains a matching "## Debt by AI Tool" section. `JsonReporter` gains a top-level `ai_tools` array and a per-item `ai_tool` field.
+  - `--format=agent` items gain the same `ai_tool` field, so an agent can ask "was this debt AI-introduced?" directly from `debt_scan`/`debt_show_file`/`debt_show_class`.
 
 ## [2.0.0] - 2026-09-18
 
