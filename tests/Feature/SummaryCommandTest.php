@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use TechRaysLabs\DebtTracker\Tests\TestCase;
 
 uses(TestCase::class);
@@ -45,4 +46,25 @@ it('activates the summary gate from config defaults', function () {
 
     $this->artisan('debt:summary')
         ->assertExitCode(1);
+});
+
+it('outputs only valid JSON for --format=agent, same schema as debt:scan', function () {
+    Artisan::call('debt:summary', ['--format' => 'agent']);
+    $payload = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($payload)->toHaveKeys(['schema_version', 'grade', 'total_score', 'items', 'priority', 'meta']);
+});
+
+it('returns the AGT-4 error shape and exit 2 for invalid agent-format flag input', function () {
+    $exitCode = Artisan::call('debt:summary', ['--format' => 'agent', '--max-score' => 'abc']);
+    $payload = json_decode(trim(Artisan::output()), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($exitCode)->toBe(2)
+        ->and($payload)->toHaveKey('error');
+});
+
+it('leaves the legacy one-line output unchanged when --format is omitted', function () {
+    $this->artisan('debt:summary')
+        ->expectsOutputToContain('[Techrays Debt Tracker] Grade:')
+        ->assertExitCode(0);
 });

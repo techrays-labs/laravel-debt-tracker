@@ -6,6 +6,8 @@ namespace TechRaysLabs\DebtTracker\Commands;
 
 use Illuminate\Console\Command;
 use Laravel\Prompts\Progress;
+use TechRaysLabs\DebtTracker\Agent\AgentFormatSerializer;
+use TechRaysLabs\DebtTracker\Agent\RendersAgentFormat;
 use TechRaysLabs\DebtTracker\DebtTracker;
 use TechRaysLabs\DebtTracker\Gating\DebtGate;
 use TechRaysLabs\DebtTracker\Gating\ResolvesGateOptions;
@@ -24,6 +26,7 @@ use function Laravel\Prompts\progress;
  */
 class ScanCommand extends Command
 {
+    use RendersAgentFormat;
     use ResolvesGateOptions;
 
     protected $signature = 'debt:scan
@@ -31,17 +34,31 @@ class ScanCommand extends Command
         {--path= : Subdirectory to scan instead of configured scan_paths}
         {--export= : Export format: markdown, json, or markdown,json}
         {--min-score=0 : Minimum item score to include in output}
-        {--format=full : Output format (full|compact)}
+        {--format=full : Output format (full|compact|agent)}
+        {--limit=10 : Caps the "priority" array size in --format=agent}
         {--fail-on-grade= : Fail (exit 1) when the grade is this letter or worse (A-F)}
         {--max-score= : Fail (exit 1) when the total debt score exceeds this number}';
 
     protected $description = 'Scan your Laravel application for technical debt';
 
-    public function handle(DebtTracker $tracker, MarkdownReporter $markdownReporter, JsonReporter $jsonReporter, DebtGate $gate): int
-    {
+    public function handle(
+        DebtTracker $tracker,
+        MarkdownReporter $markdownReporter,
+        JsonReporter $jsonReporter,
+        DebtGate $gate,
+        AgentFormatSerializer $serializer,
+    ): int {
+        $isAgentFormat = $this->isAgentFormat();
+
         try {
             [$failOnGrade, $maxScore] = $this->resolveGateThresholds();
         } catch (\InvalidArgumentException $e) {
+            if ($isAgentFormat) {
+                $this->renderAgentError($serializer, 'INVALID_OPTION', $e->getMessage());
+
+                return self::INVALID;
+            }
+
             $this->components->error($e->getMessage());
 
             return self::INVALID;
@@ -55,31 +72,41 @@ class ScanCommand extends Command
             ? [(string) $this->option('path')]
             : [];
 
-        intro('Laravel Debt Tracker · by Techrays Labs');
+        if ($isAgentFormat) {
+            try {
+                $result = $tracker->scan(paths: $paths, onlyDetectors: $only);
+            } catch (\Throwable $e) {
+                $this->renderAgentError($serializer, 'SCAN_FAILED', $e->getMessage());
 
-        /** @var Progress<int>|null $bar */
-        $bar = null;
+                return 3;
+            }
+        } else {
+            intro('Laravel Debt Tracker · by Techrays Labs');
 
-        $result = $tracker->scan(
-            paths: $paths,
-            onlyDetectors: $only,
-            onProgress: function (int $current, int $total, string $filePath) use (&$bar): void {
-                if ($bar === null) {
-                    $bar = progress(label: 'Scanning files', steps: $total);
-                    $bar->start();
-                }
+            /** @var Progress<int>|null $bar */
+            $bar = null;
 
-                $bar->label(basename($filePath));
-                $bar->advance();
+            $result = $tracker->scan(
+                paths: $paths,
+                onlyDetectors: $only,
+                onProgress: function (int $current, int $total, string $filePath) use (&$bar): void {
+                    if ($bar === null) {
+                        $bar = progress(label: 'Scanning files', steps: $total);
+                        $bar->start();
+                    }
 
-                if ($current === $total) {
-                    $bar->finish();
-                }
-            },
-        );
+                    $bar->label(basename($filePath));
+                    $bar->advance();
 
-        $reporter = new TerminalReporter($this->output);
-        $reporter->render($result);
+                    if ($current === $total) {
+                        $bar->finish();
+                    }
+                },
+            );
+
+            $reporter = new TerminalReporter($this->output);
+            $reporter->render($result);
+        }
 
         $exportFormats = $this->option('export')
             ? array_map('trim', explode(',', (string) $this->option('export')))
@@ -88,26 +115,42 @@ class ScanCommand extends Command
         if (in_array('markdown', $exportFormats, true)) {
             $exportPath = config('debt-tracker.export.path', base_path('DEBT_REPORT.md'));
             $markdownReporter->writeToFile($result, $exportPath);
-            note("Markdown report saved to: {$exportPath}");
+
+            if (! $isAgentFormat) {
+                note("Markdown report saved to: {$exportPath}");
+            }
         }
 
         if (in_array('json', $exportFormats, true)) {
             $jsonPath = config('debt-tracker.export.json_path', base_path('DEBT_REPORT.json'));
             $jsonReporter->writeToFile($result, $jsonPath);
-            note("JSON report saved to: {$jsonPath}");
+
+            if (! $isAgentFormat) {
+                note("JSON report saved to: {$jsonPath}");
+            }
         }
 
-        outro("Scan complete · Grade: {$result->grade} · Score: {$result->totalScore} · {$result->totalItems()} items found");
+        if (! $isAgentFormat) {
+            outro("Scan complete · Grade: {$result->grade} · Score: {$result->totalScore} · {$result->totalItems()} items found");
+        }
 
         if (config('debt-tracker.pulse.enabled', true)) {
             try {
                 app(DebtPulseIngestor::class)->push($result);
             } catch (\Throwable $e) {
-                $this->components->warn("Pulse push failed: {$e->getMessage()}");
+                if (! $isAgentFormat) {
+                    $this->components->warn("Pulse push failed: {$e->getMessage()}");
+                }
             }
         }
 
         $gateResult = $gate->evaluate($result, $failOnGrade, $maxScore);
+
+        if ($isAgentFormat) {
+            $this->renderAgentPayload($serializer, $result, (int) $this->option('limit'));
+
+            return ($gateResult->active && ! $gateResult->passed) ? self::FAILURE : self::SUCCESS;
+        }
 
         if ($gateResult->active && ! $gateResult->passed) {
             foreach ($gateResult->reasons as $reason) {
