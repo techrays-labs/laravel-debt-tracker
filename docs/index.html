@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laravel Debt Tracker — technical debt scanning, built for AI agents</title>
+<meta name="description" content="Scan, score, and report technical debt in your Laravel app — with AST-aware complexity analysis and real git-blame scoring, exposed to Claude Code, Cursor, and any MCP client.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Laravel Debt Tracker">
+<meta property="og:description" content="Scan, score, and report technical debt in your Laravel app — then let your AI coding agent query the same data directly.">
+<meta property="og:image" content="assets/logo-social.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/logo-mark.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+
+<style>
+  :root {
+    --bg: #181A1E;
+    --surface: #1E2127;
+    --surface-border: rgba(255,255,255,0.07);
+    --code-bg: #101216;
+    --text: #F3F5F9;
+    --text-muted: #9AA3B0;
+    --text-dim: #6E7480;
+    --accent: #FF2D20;
+    --accent-hover: #E0281C;
+    --accent-tint-bg: rgba(255,45,32,0.12);
+    --accent-tint-border: rgba(255,45,32,0.35);
+    --hairline: rgba(255,255,255,0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  code, .mono { font-family: 'IBM Plex Mono', monospace; }
+  h1, h2, .display { font-family: 'Space Grotesk', sans-serif; }
+
+  .wrap { max-width: 1248px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+
+  /* Nav */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 76px; border-bottom: 1px solid var(--hairline);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand img { width: 28px; height: 28px; border-radius: 7px; display: block; }
+  .brand span { font-size: 16px; font-weight: 600; }
+  .nav-links { display: flex; align-items: center; gap: 32px; font-size: 14px; color: var(--text-muted); }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { display: none; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 500; padding: 10px 18px;
+    border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-ghost { border-color: rgba(255,255,255,0.14); }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.4); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  /* Hero */
+  .hero {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    gap: 24px; padding: 88px 0 72px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 7px 16px; border-radius: 999px;
+    background: var(--accent-tint-bg); border: 1px solid var(--accent-tint-border);
+    font-size: 12.5px; letter-spacing: 0.02em;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); display: inline-block; }
+  .pill .sep { opacity: 0.4; }
+  .hero h1 {
+    margin: 0; max-width: 780px; font-size: 50px; line-height: 1.1;
+    font-weight: 700; letter-spacing: -0.01em;
+  }
+  .hero p.lede {
+    margin: 0; max-width: 620px; font-size: 18px; line-height: 1.55; color: var(--text-muted);
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; margin-top: 4px; }
+  .install {
+    display: flex; align-items: center; gap: 14px;
+    padding: 11px 8px 11px 18px; border-radius: 10px;
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.1);
+    font-size: 13.5px; color: #D3D6DC;
+  }
+  .install button {
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px;
+    color: var(--text-muted); background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 10px;
+  }
+  .install button:hover { color: var(--text); }
+  .trust { margin-top: 4px; font-size: 12.5px; color: var(--text-dim); }
+
+  /* Section shell */
+  section.band { padding: 64px 0 72px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  .band h2 { margin: 10px 0 0; font-size: 28px; font-weight: 600; max-width: 620px; }
+
+  /* Features grid */
+  .grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; margin-top: 40px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--surface-border);
+    border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .card.featured { border-color: rgba(255,45,32,0.25); }
+  .icon-tile {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06); color: #C4C8D1;
+  }
+  .icon-tile.accent { background: var(--accent-tint-bg); color: var(--accent); }
+  .card h3 { margin: 0; font-size: 16.5px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+  .card p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+
+  /* Agent spotlight */
+  .spotlight { display: flex; gap: 56px; align-items: flex-start; margin-top: 36px; }
+  .spotlight-copy { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+  .spotlight-copy p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+  .checklist { display: flex; flex-direction: column; gap: 12px; }
+  .checklist .row { display: flex; align-items: flex-start; gap: 12px; }
+  .check {
+    width: 19px; height: 19px; flex-shrink: 0; border-radius: 999px;
+    background: var(--accent-tint-bg); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .checklist span.label { font-size: 14px; color: #D3D6DC; }
+
+  .terminal { flex: 1.05; border-radius: 14px; background: var(--code-bg); border: 1px solid rgba(255,255,255,0.09); overflow: hidden; }
+  .terminal .titlebar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .terminal .dot-win { width: 9px; height: 9px; border-radius: 999px; background: #3A3D44; }
+  .terminal .tab-label { margin-left: 6px; font-size: 12px; color: var(--text-dim); }
+  .terminal pre {
+    margin: 0; padding: 20px 22px; font-size: 12.5px; line-height: 1.75;
+    color: #B7BEC7; overflow-x: auto;
+  }
+  .terminal .k { color: #7FB2FF; }
+  .terminal .s { color: #9FD9A8; }
+  .terminal .n { color: #E3B873; }
+  .terminal .p { color: var(--text-dim); }
+
+  /* Footer */
+  footer {
+    margin-top: auto; padding: 32px 0; border-top: 1px solid var(--hairline);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 10px; }
+  .footer-brand img { width: 20px; height: 20px; border-radius: 6px; display: block; }
+  .footer-brand span { font-size: 13px; color: var(--text-dim); }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 22px; font-size: 13px; color: var(--text-muted); }
+  .footer-links a:hover { color: var(--text); }
+
+  /* Scoring scale (grade + age-multiplier ramps) */
+  .scale-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .chip {
+    flex: 1; min-width: 110px; padding: 16px 18px; border-radius: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .chip .letter { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; }
+  .chip .range { display: block; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+  .chip.sev-1 { background: rgba(255,45,32,0.08); border-color: rgba(255,45,32,0.18); }
+  .chip.sev-2 { background: rgba(255,45,32,0.16); border-color: rgba(255,45,32,0.30); }
+  .chip.sev-3 { background: rgba(255,45,32,0.26); border-color: rgba(255,45,32,0.45); }
+  .chip.sev-4 { background: var(--accent); border-color: var(--accent); }
+  .chip.sev-4 .range { color: rgba(255,255,255,0.75); }
+  .scoring-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px; }
+  .scoring-cols h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+  .scoring-cols p.note { margin: 6px 0 0; font-size: 13.5px; color: var(--text-dim); }
+
+  /* CI gate */
+  .ci-cols { display: flex; gap: 56px; align-items: flex-start; margin-top: 36px; }
+  .ci-copy { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .ci-copy p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+  .flag-table { display: flex; flex-direction: column; gap: 10px; }
+  .flag-table .row2 { display: flex; gap: 14px; font-size: 13.5px; align-items: baseline; }
+  .flag-table code { color: var(--text); flex-shrink: 0; }
+  .flag-table .desc { color: var(--text-muted); }
+  .ci-code { flex: 1; }
+
+  /* Timeline (Get started) */
+  .timeline { position: relative; max-width: 640px; margin-top: 44px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 19px; top: 19px; bottom: 19px;
+    width: 2px; background: rgba(255,255,255,0.1);
+  }
+  .tl-item { position: relative; display: flex; gap: 24px; padding-bottom: 44px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-node {
+    position: relative; z-index: 1; flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 999px;
+    background: var(--bg); border: 1px solid rgba(255,45,32,0.4);
+    color: var(--accent); font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tl-content { flex: 1; display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+  .tl-content h3 { margin: 0; font-size: 16.5px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+  .tl-content p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+  .tl-content code.cmd {
+    margin-top: 2px; display: block; font-size: 12.5px; padding: 9px 12px;
+    background: var(--code-bg); border-radius: 8px; color: #B7BEC7; overflow-x: auto; white-space: nowrap;
+  }
+
+  @media (min-width: 860px) {
+    .nav-links { display: flex; }
+    .nav-cta { display: inline-flex; }
+  }
+  @media (max-width: 859px) {
+    .nav-links { display: none; }
+  }
+  @media (max-width: 900px) {
+    .hero h1 { font-size: 38px; }
+    .grid { grid-template-columns: 1fr; }
+    .spotlight { flex-direction: column; }
+    .scoring-cols { grid-template-columns: 1fr; gap: 32px; }
+    .ci-cols { flex-direction: column; }
+    .wrap { padding-left: 22px; padding-right: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap nav">
+  <div class="brand">
+    <img src="assets/logo-mark.svg" alt="Laravel Debt Tracker">
+    <span>Laravel Debt Tracker</span>
+  </div>
+  <nav class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#agent-mcp">Agent / MCP</a>
+    <a href="#pulse">Pulse</a>
+    <a href="https://github.com/techrays-labs/laravel-debt-tracker#readme">Docs</a>
+  </nav>
+  <a class="btn btn-ghost nav-cta" href="https://github.com/techrays-labs/laravel-debt-tracker">GitHub &#8599;</a>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <span class="pill mono"><span class="dot"></span><span>v2.0.0</span><span class="sep">&middot;</span><span>AI Agent Ready via MCP</span></span>
+    <h1>Find your technical debt.<br>Let your AI agent find it too.</h1>
+    <p class="lede">Scan, score, and report technical debt in your Laravel app — with AST-aware complexity analysis and real git-blame scoring, exposed to Claude Code, Cursor, and any MCP client.</p>
+    <div class="hero-actions">
+      <div class="install mono">
+        <span>composer require --dev techrays-labs/laravel-debt-tracker</span>
+        <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('composer require --dev techrays-labs/laravel-debt-tracker')" aria-label="Copy install command">Copy</button>
+      </div>
+      <a class="btn btn-primary" href="https://github.com/techrays-labs/laravel-debt-tracker">View on GitHub</a>
+    </div>
+    <div class="trust mono">MIT licensed &nbsp;&middot;&nbsp; PHP 8.2 – 8.4 &nbsp;&middot;&nbsp; Laravel 10 – 13</div>
+  </section>
+
+  <section class="band" id="features">
+    <span class="eyebrow">What it does</span>
+    <h2>Nine detectors. One score. Zero guessing.</h2>
+    <div class="grid">
+
+      <div class="card featured">
+        <div class="icon-tile accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.4"></circle><circle cx="19" cy="6" r="2.4"></circle><circle cx="12" cy="12" r="2.4"></circle><line x1="6.8" y1="16.6" x2="10.5" y2="13.3"></line><line x1="13.5" y1="10.7" x2="17.2" y2="7.4"></line></svg>
+        </div>
+        <h3>Agent / MCP interface</h3>
+        <p>AI coding agents query real debt data directly over a local MCP server — no more grepping for TODOs.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-tile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v6"></path><path d="M12 10l-5 5v3"></path><path d="M12 10l5 5v3"></path></svg>
+        </div>
+        <h3>Complexity analysis</h3>
+        <p>Cyclomatic complexity, long methods, God classes, and deep nesting — flagged before they metastasize.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-tile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="4" rx="1.2"></rect><rect x="4" y="10.5" width="16" height="4" rx="1.2"></rect><rect x="4" y="16" width="16" height="4" rx="1.2"></rect></svg>
+        </div>
+        <h3>N+1 query detection</h3>
+        <p>Flags Eloquent lazy-load patterns inside loops and collection iterators, before they hit production.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-tile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l7 3.2v5.1c0 4.4-3 7.2-7 8.7-4-1.5-7-4.3-7-8.7V6.7z"></path><path d="M9.3 12l1.9 1.9 3.5-3.9"></path></svg>
+        </div>
+        <h3>Security smell detection</h3>
+        <p>eval/exec, hardcoded credentials, unsafe unserialize, SQL concatenation, and debug leakage.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-tile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M12 7.5V12l3.2 2"></path></svg>
+        </div>
+        <h3>Git-aware scoring</h3>
+        <p>Older debt scores higher — age is the multiplier, straight from git blame.</p>
+      </div>
+
+      <div class="card" id="pulse">
+        <div class="icon-tile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13h3.5l2-6 3 12 2-9 1.6 3h4.4"></path></svg>
+        </div>
+        <h3>Laravel Pulse dashboard</h3>
+        <p>Grade, score trend, and the git-author leaderboard — visible on your team's dashboard, zero extra packages.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="band" id="agent-mcp">
+    <div class="spotlight">
+      <div class="spotlight-copy">
+        <span class="eyebrow">Agent-ready</span>
+        <h2 style="margin-top: 6px;">Built for AI coding agents, not just humans</h2>
+        <p>Your agent shouldn't have to approximate technical debt by grepping for TODOs. <code>debt:mcp-serve</code> starts a local, read-only MCP server so it can ask a tool that already does the analysis — and get a straight answer back.</p>
+
+        <div class="checklist">
+          <div class="row">
+            <span class="check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg></span>
+            <span class="label">Versioned JSON contract (<code>schema_version</code>), independent of <code>--export=json</code></span>
+          </div>
+          <div class="row">
+            <span class="check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg></span>
+            <span class="label">Four read-only MCP tools over stdio — scan, show-file, show-class, gate-check</span>
+          </div>
+          <div class="row">
+            <span class="check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg></span>
+            <span class="label">Works with Claude Code, Cursor, and any MCP-capable client</span>
+          </div>
+        </div>
+
+        <a class="btn btn-ghost" style="align-self: flex-start;" href="https://github.com/techrays-labs/laravel-debt-tracker#agent--mcp-integration">Read the setup guide &#8599;</a>
+      </div>
+
+      <div class="terminal">
+        <div class="titlebar">
+          <span class="dot-win"></span><span class="dot-win"></span><span class="dot-win"></span>
+          <span class="tab-label mono">debt_scan &rarr; agent</span>
+        </div>
+        <pre class="mono">$ php artisan debt:mcp-serve
+
+<span class="p">{</span>
+  <span class="k">"schema_version"</span>: <span class="s">"1.0"</span>,
+  <span class="k">"grade"</span>: <span class="s">"B"</span>,
+  <span class="k">"total_score"</span>: <span class="n">342</span>,
+  <span class="k">"priority"</span>: <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="k">"file"</span>: <span class="s">"app/Services/PaymentService.php"</span>,
+      <span class="k">"method_name"</span>: <span class="s">"process"</span>,
+      <span class="k">"age_band"</span>: <span class="s">"chronic"</span>,
+      <span class="k">"final_score"</span>: <span class="n">18</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="scoring">
+    <span class="eyebrow">How scoring works</span>
+    <h2>Not a linter. A grade you can act on.</h2>
+    <div class="scoring-cols">
+      <div>
+        <h3>Grade thresholds</h3>
+        <p class="note">Total score across every detector, mapped to a letter.</p>
+        <div class="scale-row">
+          <div class="chip"><span class="letter">A</span><span class="range mono">0–100</span></div>
+          <div class="chip sev-1"><span class="letter">B</span><span class="range mono">101–300</span></div>
+          <div class="chip sev-2"><span class="letter">C</span><span class="range mono">301–600</span></div>
+          <div class="chip sev-3"><span class="letter">D</span><span class="range mono">601–1000</span></div>
+          <div class="chip sev-4"><span class="letter">F</span><span class="range mono">1001+</span></div>
+        </div>
+      </div>
+      <div>
+        <h3>Age multiplier</h3>
+        <p class="note">Older debt scores higher — the same issue, untouched for 6 months, weighs 3&times; more.</p>
+        <div class="scale-row">
+          <div class="chip"><span class="letter">1.0&times;</span><span class="range">fresh &middot; &lt;30d</span></div>
+          <div class="chip sev-1"><span class="letter">1.5&times;</span><span class="range">growing &middot; 30–89d</span></div>
+          <div class="chip sev-2"><span class="letter">2.0&times;</span><span class="range">chronic &middot; 90–179d</span></div>
+          <div class="chip sev-3"><span class="letter">3.0&times;</span><span class="range">critical &middot; 180d+</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="ci-gate">
+    <span class="eyebrow">For your pipeline</span>
+    <h2>Block a PR before the debt ships</h2>
+    <div class="ci-cols">
+      <div class="ci-copy">
+        <p>Two opt-in flags on <code>debt:scan</code> and <code>debt:summary</code> turn a report into a merge gate. Set them once in config, or override per workflow — a CLI flag always wins.</p>
+        <div class="flag-table mono">
+          <div class="row2"><code>--fail-on-grade=C</code><span class="desc">fails when the grade is C or worse</span></div>
+          <div class="row2"><code>--max-score=500</code><span class="desc">fails when the total score exceeds 500</span></div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-dim);">Exit codes: <code class="mono">0</code> passed &middot; <code class="mono">1</code> breached &middot; <code class="mono">2</code> invalid flag.</p>
+      </div>
+      <div class="terminal ci-code">
+        <div class="titlebar">
+          <span class="dot-win"></span><span class="dot-win"></span><span class="dot-win"></span>
+          <span class="tab-label mono">.github/workflows/tests.yml</span>
+        </div>
+        <pre class="mono"><span class="p">- name:</span> Technical debt gate
+<span class="p">  run:</span> php artisan debt:scan <span class="s">--fail-on-grade=C</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="get-started">
+    <span class="eyebrow">Get started</span>
+    <h2>Three commands to a real answer</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="tl-node mono">01</span>
+        <div class="tl-content">
+          <h3>Install</h3>
+          <p>Dev-only dependency, auto-discovered by Laravel.</p>
+          <code class="cmd mono">composer require --dev techrays-labs/laravel-debt-tracker</code>
+        </div>
+      </div>
+      <div class="tl-item">
+        <span class="tl-node mono">02</span>
+        <div class="tl-content">
+          <h3>Scan</h3>
+          <p>Full terminal report — grade, score, hours, top offenders.</p>
+          <code class="cmd mono">php artisan debt:scan</code>
+        </div>
+      </div>
+      <div class="tl-item">
+        <span class="tl-node mono">03</span>
+        <div class="tl-content">
+          <h3>Connect your agent</h3>
+          <p>Start the MCP server, then register it with Claude Code or Cursor.</p>
+          <code class="cmd mono">php artisan debt:mcp-serve</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div class="footer-brand">
+    <img src="assets/logo-mark.svg" alt="Techrays Labs">
+    <span>&copy; 2026 Techrays Labs Private Limited</span>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/techrays-labs/laravel-debt-tracker">GitHub</a>
+    <a href="https://packagist.org/packages/techrays-labs/laravel-debt-tracker">Packagist</a>
+    <a href="https://github.com/techrays-labs/laravel-debt-tracker#readme">Docs</a>
+    <a href="https://github.com/techrays-labs/laravel-debt-tracker/blob/master/LICENSE">MIT License</a>
+    <a href="mailto:opensource@techrayslabs.com">opensource@techrayslabs.com</a>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  // Progressive enhancement: every element below is fully visible in plain
+  // CSS. Nothing is hidden until GSAP actually runs, so a blocked/failed
+  // CDN load just means "no animation," never "missing content."
+  function initAnimations() {
+    if (!window.gsap) return;
+
+    gsap.registerPlugin(window.ScrollTrigger);
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!reduceMotion) {
+      // Hero entrance
+      gsap.timeline({ defaults: { ease: 'power3.out', duration: 0.7 } })
+        .from('.nav .brand', { y: -10, opacity: 0 })
+        .from('.nav-links a, .nav-cta', { y: -10, opacity: 0, stagger: 0.05 }, '<0.05')
+        .from('.hero .pill', { y: 16, opacity: 0 }, '+=0.05')
+        .from('.hero h1', { y: 20, opacity: 0 }, '-=0.45')
+        .from('.hero .lede', { y: 16, opacity: 0 }, '-=0.45')
+        .from('.hero-actions', { y: 16, opacity: 0 }, '-=0.4')
+        .from('.hero .trust', { opacity: 0 }, '-=0.3');
+
+      // A quiet "live" pulse on the status dot in the hero pill.
+      gsap.to('.pill .dot', {
+        scale: 1.5, opacity: 0.45, duration: 1.1, ease: 'sine.inOut',
+        repeat: -1, yoyo: true, transformOrigin: '50% 50%',
+      });
+
+      // Section headers reveal as they enter.
+      gsap.utils.toArray('.band').forEach(function (band) {
+        gsap.from(band.querySelectorAll('.eyebrow, .band > h2, .spotlight-copy > h2'), {
+          y: 18, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08,
+          scrollTrigger: { trigger: band, start: 'top 82%' },
+        });
+      });
+
+      // Feature cards: staggered rise-in.
+      gsap.from('#features .card', {
+        y: 24, opacity: 0, duration: 0.55, ease: 'power2.out', stagger: 0.07,
+        scrollTrigger: { trigger: '#features .grid', start: 'top 85%' },
+      });
+
+      // Agent/MCP spotlight: copy first, then the terminal card.
+      gsap.from('.spotlight-copy > p, .spotlight-copy .btn', {
+        y: 18, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.1,
+        scrollTrigger: { trigger: '.spotlight', start: 'top 78%' },
+      });
+      gsap.from('.checklist .row', {
+        x: -14, opacity: 0, duration: 0.5, ease: 'power2.out', stagger: 0.09,
+        scrollTrigger: { trigger: '.checklist', start: 'top 82%' },
+      });
+      gsap.from('.terminal', {
+        y: 20, opacity: 0, scale: 0.97, duration: 0.6, ease: 'power2.out',
+        scrollTrigger: { trigger: '.terminal', start: 'top 80%' },
+      });
+      // The JSON response "prints" line by line once the terminal is in view.
+      gsap.from('.terminal pre', {
+        opacity: 0, duration: 0.4, ease: 'none',
+        scrollTrigger: { trigger: '.terminal', start: 'top 75%' },
+      });
+
+      // Scoring scale chips: each row staggers in as it's reached.
+      gsap.utils.toArray('.scale-row').forEach(function (row) {
+        gsap.from(row.querySelectorAll('.chip'), {
+          y: 16, opacity: 0, duration: 0.45, ease: 'power2.out', stagger: 0.06,
+          scrollTrigger: { trigger: row, start: 'top 88%' },
+        });
+      });
+
+      // Get-started timeline: each node+content pair rises in as it's reached.
+      gsap.from('.timeline .tl-item', {
+        y: 20, opacity: 0, duration: 0.5, ease: 'power2.out', stagger: 0.12,
+        scrollTrigger: { trigger: '.timeline', start: 'top 82%' },
+      });
+
+      gsap.from('footer > div', {
+        y: 12, opacity: 0, duration: 0.5, ease: 'power2.out', stagger: 0.08,
+        scrollTrigger: { trigger: 'footer', start: 'top 92%' },
+      });
+    }
+  }
+
+  // Run once the page (fonts, images) has actually settled — running this
+  // while a web font is still swapping in shifts every trigger position
+  // below the fold, and they never fire again. Re-measure after fonts
+  // resolve as a second safety net for slow connections.
+  if (document.readyState === 'complete') {
+    initAnimations();
+  } else {
+    window.addEventListener('load', initAnimations);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+    });
+  }
+</script>
+
+</body>
+</html>
