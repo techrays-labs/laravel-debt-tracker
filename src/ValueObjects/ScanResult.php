@@ -74,6 +74,20 @@ final class ScanResult
     }
 
     /**
+     * Returns the N highest-scoring debt items across all files, sorted descending.
+     *
+     * @return DebtItem[]
+     */
+    public function topItems(int $n = 10): array
+    {
+        $all = array_merge([], ...array_map(static fn (FileDebtResult $f) => $f->items, $this->fileResults));
+
+        usort($all, static fn (DebtItem $a, DebtItem $b) => $b->finalScore() <=> $a->finalScore());
+
+        return array_slice($all, 0, $n);
+    }
+
+    /**
      * Returns the total number of individual debt items across all files.
      */
     public function totalItems(): int
