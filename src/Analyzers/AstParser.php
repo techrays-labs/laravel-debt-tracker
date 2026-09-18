@@ -13,13 +13,10 @@ use PhpParser\ParserFactory;
 use PhpParser\PhpVersion;
 
 /**
- * Thin wrapper around nikic/php-parser with per-file AST caching.
+ * Thin wrapper around nikic/php-parser.
  */
 class AstParser
 {
-    /** @var array<string, array<Node\Stmt>|null> */
-    private array $cache = [];
-
     private Parser $parser;
 
     private NodeFinder $nodeFinder;
@@ -31,33 +28,32 @@ class AstParser
     }
 
     /**
-     * Parses a file and returns its AST, using cache to avoid re-parsing.
+     * Parses a file and returns its AST.
+     *
+     * Each file is parsed exactly once per scan — FileAnalyzer parses it and
+     * passes the resulting AST to every detector via $context, so nothing
+     * ever calls parse() twice on the same path. A previous version of this
+     * method cached every result for the parser's lifetime, which had a 0%
+     * hit rate in practice and just accumulated memory across an entire
+     * scan — exhausting PHP's default memory_limit on large (1,000+ file)
+     * projects.
      *
      * @return array<Node\Stmt>|null
      */
     public function parse(string $filePath): ?array
     {
-        if (array_key_exists($filePath, $this->cache)) {
-            return $this->cache[$filePath];
-        }
-
         try {
             $source = @file_get_contents($filePath);
 
             if ($source === false) {
                 trigger_error("DebtTracker: cannot read file {$filePath}", E_USER_WARNING);
-                $this->cache[$filePath] = null;
 
                 return null;
             }
 
-            $ast = $this->parser->parse($source);
-            $this->cache[$filePath] = $ast;
-
-            return $ast;
+            return $this->parser->parse($source);
         } catch (\Throwable) {
             trigger_error("DebtTracker: cannot parse {$filePath}", E_USER_WARNING);
-            $this->cache[$filePath] = null;
 
             return null;
         }
