@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Filesystem\Filesystem;
 use TechRaysLabs\DebtTracker\Detectors\DependencyDetector;
 
 /**
@@ -29,10 +30,8 @@ function makeTempComposer(array $require, array $packages): array
 
 function cleanupTempDir(string $dir): void
 {
-    foreach (glob($dir.'/*') as $file) {
-        @unlink($file);
-    }
-    @rmdir($dir);
+    // The detector writes its cache under $dir/storage, so remove recursively.
+    (new Filesystem)->deleteDirectory($dir);
 }
 
 it('skips non-composer.json files', function () {

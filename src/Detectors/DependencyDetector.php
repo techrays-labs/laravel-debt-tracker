@@ -55,7 +55,7 @@ class DependencyDetector implements DetectorInterface
             return [];
         }
 
-        $composerJson = @file_get_contents($filePath);
+        $composerJson = is_file($filePath) ? @file_get_contents($filePath) : false;
 
         if ($composerJson === false) {
             return [];
