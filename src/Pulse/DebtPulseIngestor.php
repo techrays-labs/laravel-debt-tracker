@@ -58,9 +58,8 @@ class DebtPulseIngestor
         // Pulse buffers writes in memory and ingests via an HTTP terminating hook.
         // For console commands (debt:scan) that hook may not fire, so we call
         // ingest() explicitly to guarantee data reaches the database synchronously.
-        $pulse = app(\Laravel\Pulse\Pulse::class);
-        if (app()->runningInConsole() && method_exists($pulse, 'ingest')) {
-            $pulse->ingest();
+        if (app()->runningInConsole()) {
+            app(\Laravel\Pulse\Pulse::class)->ingest();
         }
     }
 }

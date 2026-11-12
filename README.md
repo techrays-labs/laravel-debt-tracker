@@ -17,7 +17,7 @@
     <img src="https://img.shields.io/packagist/dt/techrays-labs/laravel-debt-tracker?style=for-the-badge" alt="Total Downloads">
   </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Version">
+  <img src="https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Version">
   &nbsp;
   <img src="https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Version">
   &nbsp;
@@ -142,7 +142,7 @@ Requires the `mcp/sdk` package, which is **not** installed by a plain
 suggest-only pattern as the optional Laravel Pulse integration:
 
 ```bash
-composer require --dev mcp/sdk
+composer require --dev "mcp/sdk:^0.10"
 ```
 
 Running `debt:mcp-serve` without it prints a clear error instead of
@@ -212,7 +212,7 @@ agent to apply fixes, that's a separate concern from diagnostics.
 
 | Requirement | Version |
 |---|---|
-| PHP | 8.2, 8.3, 8.4 |
+| PHP | 8.2, 8.3, 8.4, 8.5 |
 | Laravel | 10, 11, 12, 13 |
 
 ---
