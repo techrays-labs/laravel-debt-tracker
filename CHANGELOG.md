@@ -2,6 +2,13 @@
 
 > **Support policy:** The `v2.x` line is actively maintained. All prior versions (1.0, 1.1, 1.2, 1.3) are end of life — no further bug fixes or security patches will be issued for them.
 
+## [Unreleased]
+
+### Changed
+- CI now runs PHPStan and Pint on every push and pull request.
+- `DependencyDetector` checks that `composer.json` exists before reading it, matching how it already reads `composer.lock` and its cache file.
+- Tests: `DependencyDetectorTest` cleans up its temp directories recursively (they were being left behind, with six PHP warnings per run).
+
 ## [2.1.1] - 2026-11-12
 
 ### Fixed

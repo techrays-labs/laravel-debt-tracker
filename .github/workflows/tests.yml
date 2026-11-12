@@ -37,3 +37,23 @@ jobs:
 
       - name: Run tests
         run: ./vendor/bin/pest
+
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2 (setup-php v2.40.0)
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist
+
+      - name: PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+
+      - name: Pint
+        run: ./vendor/bin/pint --test
