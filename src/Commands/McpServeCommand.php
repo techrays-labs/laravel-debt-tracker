@@ -6,7 +6,7 @@ namespace TechRaysLabs\DebtTracker\Commands;
 
 use Composer\InstalledVersions;
 use Illuminate\Console\Command;
-use Mcp\Server;
+use Mcp\Server\Server;
 use Mcp\Server\Transport\StdioTransport;
 use TechRaysLabs\DebtTracker\Agent\AgentTools;
 
@@ -24,7 +24,7 @@ class McpServeCommand extends Command
     public function handle(AgentTools $tools): int
     {
         if (! class_exists(Server::class)) {
-            $this->components->error('The MCP SDK is not installed. Run: composer require mcp/sdk');
+            $this->components->error('mcp/sdk ^0.10 is required. Run: composer require --dev mcp/sdk:^0.10');
 
             return self::FAILURE;
         }

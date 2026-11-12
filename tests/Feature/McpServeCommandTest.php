@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Mcp\Client;
+use Mcp\Client\Client;
 use Mcp\Client\Transport\StdioTransport;
 
 /**

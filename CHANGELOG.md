@@ -2,6 +2,23 @@
 
 > **Support policy:** The `v2.x` line is actively maintained. All prior versions (1.0, 1.1, 1.2, 1.3) are end of life — no further bug fixes or security patches will be issued for them.
 
+## [2.1.1] - 2026-11-12
+
+### Fixed
+- `debt:mcp-serve` now works with `mcp/sdk` 0.10. That release moved `Mcp\Server` to `Mcp\Server\Server`, so a fresh `composer require --dev mcp/sdk` made the command report the SDK as "not installed".
+
+### Security
+- `mcp/sdk` constraint raised from `^0.8` to `^0.10`. Every 0.8.x release is affected by [GHSA-f4rf-6ghj-mhr6](https://github.com/modelcontextprotocol/php-sdk/security/advisories/GHSA-f4rf-6ghj-mhr6) (OAuth middleware memory exhaustion). `debt:mcp-serve` is stdio-only and never loaded that middleware, but the vulnerable range is no longer installable. If you installed the SDK for 2.0/2.1, run `composer require --dev "mcp/sdk:^0.10"`.
+
+### Added
+- **PHP 8.5 support** — tested in CI against Laravel 12 and 13.
+
+### Changed
+- Removed a redundant `method_exists()` guard around `Pulse::ingest()` (present since Pulse 1.0).
+- CI now really tests each Laravel line. The workflow declared a Laravel 10–13 matrix but never used the value, so every job installed the latest Laravel. Each job now pins `laravel/framework` to its matrix version, on the PHP versions that Laravel line supports.
+- Dev dependencies: `larastan/larastan` widened to `^2.9|^3.0` and `phpstan/phpstan` to `^1.12|^2.0`, so the dev toolchain installs on Laravel 10.
+- CI: `shivammathur/setup-php` pinned to v2.40.0.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added
